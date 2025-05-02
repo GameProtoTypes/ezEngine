@@ -14,6 +14,14 @@ EZ_TESTFRAMEWORK_ENTRY_POINT_BEGIN("RendererTest", "Renderer Tests")
   ezCommandLineUtils cmd;
   cmd.SetCommandLine(argc, (const char**)argv, ezCommandLineUtils::PreferOsArgs);
 
+  if (ezCommandLineUtils::GetGlobalInstance()->GetBoolOption("-WaitForDebugger"))
+  {
+    while (!ezSystemInformation::IsDebuggerAttached())
+    {
+      ezThreadUtils::Sleep(ezTime::MakeFromMilliseconds(10));
+    }
+  }
+
   if (cmd.GetBoolOption("-offscreen"))
   {
     ezOffscreenRendererTest offScreenTest;

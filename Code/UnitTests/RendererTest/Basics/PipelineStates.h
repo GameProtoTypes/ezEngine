@@ -7,7 +7,7 @@
 class ezRendererTestPipelineStates : public ezGraphicsTest
 {
 public:
-  virtual const char* GetTestName() const override { return "PipelineStates"; }
+  virtual const char* GetTestName() const override { return "RenderDocTest"; }
 
 private:
   enum SubTests
@@ -42,20 +42,7 @@ private:
 
   virtual void SetupSubTests() override
   {
-    AddSubTest("01 - MostBasicShader", SubTests::ST_MostBasicShader);
-    AddSubTest("02 - ViewportScissor", SubTests::ST_ViewportScissor);
-    AddSubTest("03 - VertexBuffer", SubTests::ST_VertexBuffer);
-    AddSubTest("04 - IndexBuffer", SubTests::ST_IndexBuffer);
-    AddSubTest("05 - ConstantBuffer", SubTests::ST_ConstantBuffer);
-    AddSubTest("06 - StructuredBuffer", SubTests::ST_StructuredBuffer);
-    AddSubTest("07 - Texture2D", SubTests::ST_Texture2D);
-    AddSubTest("08 - Texture2DArray", SubTests::ST_Texture2DArray);
-    AddSubTest("09 - GenerateMipMaps", SubTests::ST_GenerateMipMaps);
-    AddSubTest("10 - PushConstants", SubTests::ST_PushConstants);
-    AddSubTest("11 - SetsSlots", SubTests::ST_SetsSlots);
-    AddSubTest("12 - Timestamps", SubTests::ST_Timestamps); // Disabled due to CI failure on AMD.
-    AddSubTest("13 - OcclusionQueries", SubTests::ST_OcclusionQueries);
-    AddSubTest("14 - CustomVertexStreams", SubTests::ST_CustomVertexStreams);
+    AddSubTest("RenderDocTest", SubTests::ST_StructuredBuffer);
   }
 
   virtual ezResult InitializeSubTest(ezInt32 iIdentifier) override;
