@@ -299,7 +299,7 @@ void ezGraphicsTest::EndFrame()
     m_pWindow->ProcessWindowMessages();
   }
 
-  ezRenderContext::GetDefaultInstance()->ResetContextState();
+  //ezRenderContext::GetDefaultInstance()->ResetContextState();
 
   m_pDevice->EndFrame();
 
@@ -375,8 +375,8 @@ void ezGraphicsTest::RenderCube(ezRectFloat viewport, ezMat4 mMVP, ezUInt32 uiRe
 {
   ezGALCommandEncoder* pCommandEncoder = BeginRendering(ezColor::RebeccaPurple, uiRenderTargetClearMask, &viewport);
 
-  ezBindGroupBuilder& bindGroup = ezRenderContext::GetDefaultInstance()->GetBindGroup();
-  bindGroup.BindTexture("DiffuseTexture", hTexture, textureRange);
+  ezBindGroupBuilder& bindGroupTest = ezRenderContext::GetDefaultInstance()->GetBindGroup();
+  bindGroupTest.BindTexture("DiffuseTexture", hTexture, textureRange);
   RenderObject(m_hCubeUV, mMVP, ezColor(1, 1, 1, 1), ezShaderBindFlags::None);
   EndRendering();
   if (m_bCaptureImage && m_ImgCompFrames.Contains(m_iFrame))
@@ -497,8 +497,8 @@ void ezGraphicsTest::RenderObject(ezMeshBufferResourceHandle hObject, const ezMa
   ocb->m_MVP = mTransform;
   ocb->m_Color = color;
 
-  ezBindGroupBuilder& bindGroup = ezRenderContext::GetDefaultInstance()->GetBindGroup();
-  bindGroup.BindBuffer("PerObject", m_hObjectTransformCB);
+  ezBindGroupBuilder& bindGroupTest = ezRenderContext::GetDefaultInstance()->GetBindGroup();
+  bindGroupTest.BindBuffer("PerObject", m_hObjectTransformCB);
 
   ezRenderContext::GetDefaultInstance()->BindMeshBuffer(hObject);
   ezRenderContext::GetDefaultInstance()->DrawMeshBuffer().IgnoreResult();

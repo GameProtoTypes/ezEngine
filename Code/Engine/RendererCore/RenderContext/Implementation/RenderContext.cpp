@@ -104,6 +104,11 @@ ezRenderContext::Statistics::Statistics()
 void ezRenderContext::Statistics::Reset()
 {
   m_uiFailedDrawcalls = 0;
+  for (ezUInt32 i = 0; i < EZ_GAL_MAX_BIND_GROUPS; ++i)
+  {
+    m_uiModifiedBindGroup[i] = 0;
+    m_uiLayoutChanged[i] = 0;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -166,7 +171,7 @@ ezRenderContext::~ezRenderContext()
 ezRenderContext::Statistics ezRenderContext::GetAndResetStatistics()
 {
   ezRenderContext::Statistics ret = m_Statistics;
-  ret.Reset();
+  m_Statistics.Reset();
 
   return ret;
 }
@@ -265,7 +270,7 @@ ezBindGroupBuilder& ezRenderContext::GetBindGroup(ezUInt32 uiBindGroup)
   return m_BindGroupBuilders[0];
 }
 
-void ezRenderContext::SetPushConstants(ezTempHashedString sSlotName, ezArrayPtr<const ezUInt8> data)
+void ezRenderContext::SetPushConstants(ezStringView sSlotName, ezArrayPtr<const ezUInt8> data)
 {
 
   if (!m_hPushConstantsStorage.IsInvalidated())
@@ -513,7 +518,11 @@ ezResult ezRenderContext::ApplyContextStates(bool bForce)
       for (ezUInt32 uiBindGroup = 0; uiBindGroup < uiBindGroups; uiBindGroup++)
       {
         const bool bForceBindGroupUpdate = bForce || m_bDirtyBindGroups[uiBindGroup];
-        if (bForceBindGroupUpdate || m_BindGroupBuilders[uiBindGroup].IsModified())
+        const bool bBindGroupModified = m_BindGroupBuilders[uiBindGroup].IsModified();
+        if (bBindGroupModified)
+          m_Statistics.m_uiModifiedBindGroup[uiBindGroup]++;
+
+        if (bForceBindGroupUpdate || bBindGroupModified)
         {
           EZ_SUCCEED_OR_RETURN(ApplyBindGroup(m_pActiveGALShader, uiBindGroup));
         }
@@ -847,6 +856,10 @@ void ezRenderContext::GALStaticDeviceEventHandler(const ezGALDeviceEvent& e)
     if (s_pDefaultInstance)
     {
       s_pDefaultInstance->m_StateFlags = ezRenderContextFlags::AllStatesInvalid;
+      for (ezUInt32 i = 0; i < EZ_GAL_MAX_BIND_GROUPS; ++i)
+      {
+        s_pDefaultInstance->m_bDirtyBindGroups[i] = true;
+      }
       s_pDefaultInstance->m_pGALCommandEncoder = e.m_pCommandEncoder;
     }
   }
@@ -858,6 +871,10 @@ void ezRenderContext::GALStaticDeviceEventHandler(const ezGALDeviceEvent& e)
   }
   else if (e.m_Type == ezGALDeviceEvent::Type::BeforeBeginFrame)
   {
+    if (s_pDefaultInstance)
+    {
+      s_pDefaultInstance->ResetContextState();
+    }
     for (auto it = s_ConstantBufferStorageTable.GetIterator(); it.IsValid(); ++it)
     {
       it.Value()->BeforeBeginFrame();
@@ -870,6 +887,19 @@ void ezRenderContext::GALStaticDeviceEventHandler(const ezGALDeviceEvent& e)
     ezBindGroupBuilder::s_uiWrites = 0;
     ezStats::SetStat("RenderContext/BindGroupReads", ezBindGroupBuilder::s_uiReads);
     ezBindGroupBuilder::s_uiReads = 0;
+
+    if (s_pDefaultInstance)
+    {
+      ezRenderContext::Statistics stats = s_pDefaultInstance->GetAndResetStatistics();
+      for (ezUInt32 i = 0; i < EZ_GAL_MAX_BIND_GROUPS; ++i)
+      {
+        ezStringBuilder groupName;
+        groupName.SetFormat("RenderContext/BindGroup_{}_Modified", i);
+        ezStats::SetStat(groupName, stats.m_uiModifiedBindGroup[i]);
+        groupName.SetFormat("RenderContext/BindGroup_{}_LayoutChanged", i);
+        ezStats::SetStat(groupName, stats.m_uiLayoutChanged[i]);
+      }
+    }
   }
 }
 
@@ -1004,8 +1034,10 @@ ezShaderPermutationResource* ezRenderContext::ApplyShaderState()
   if (!m_hActiveShaderPermutation.IsValid())
     return nullptr;
 
+  // Non-material shaders are always force-loaded so we don't accidentally miss to render important passes.
+  const bool bAsyncShaderLoading = m_bAllowAsyncShaderLoading && m_hMaterial.IsValid();
   ezShaderPermutationResource* pShaderPermutation = ezResourceManager::BeginAcquireResource(
-    m_hActiveShaderPermutation, m_bAllowAsyncShaderLoading ? ezResourceAcquireMode::AllowLoadingFallback : ezResourceAcquireMode::BlockTillLoaded);
+    m_hActiveShaderPermutation, bAsyncShaderLoading ? ezResourceAcquireMode::AllowLoadingFallback : ezResourceAcquireMode::BlockTillLoaded);
 
   if (!pShaderPermutation->IsShaderValid())
   {
@@ -1025,6 +1057,7 @@ ezShaderPermutationResource* ezRenderContext::ApplyShaderState()
   {
     if (m_pActiveGALShader->GetBindGroupLayout(i) != m_BindGroups[i].m_hBindGroupLayout)
     {
+      m_Statistics.m_uiLayoutChanged[i]++;
       m_bDirtyBindGroups[i] = true;
       m_StateFlags.Add(ezRenderContextFlags::BindGroupLayoutChanged);
     }
@@ -1068,14 +1101,14 @@ void ezRenderContext::ApplyMaterialState()
 
     BindShaderInternal(data->m_hShader, ezShaderBindFlags::Default);
 
-    ezBindGroupBuilder& bindGroup = GetBindGroup(EZ_GAL_BIND_GROUP_MATERIAL);
+    ezBindGroupBuilder& bindGroupMaterial = GetBindGroup(EZ_GAL_BIND_GROUP_MATERIAL);
     if (!data->m_hStructuredBuffer.IsInvalidated())
     {
-      bindGroup.BindBuffer("materialData", data->m_hStructuredBuffer);
+      bindGroupMaterial.BindBuffer("materialData", data->m_hStructuredBuffer);
     }
     else if (!data->m_hConstantBuffer.IsInvalidated())
     {
-      bindGroup.BindBuffer("materialData", data->m_hConstantBuffer);
+      bindGroupMaterial.BindBuffer("materialData", data->m_hConstantBuffer);
     }
 
     for (const ezPermutationVar& perm : data->m_PermutationVars)
@@ -1085,12 +1118,12 @@ void ezRenderContext::ApplyMaterialState()
 
     for (const ezMaterialResourceDescriptor::Texture2DBinding& binding : data->m_Texture2DBindings)
     {
-      bindGroup.BindTexture(binding.m_Name, binding.m_Value);
+      bindGroupMaterial.BindTexture(binding.m_Name, binding.m_Value);
     }
 
     for (const ezMaterialResourceDescriptor::TextureCubeBinding& binding : data->m_TextureCubeBindings)
     {
-      bindGroup.BindTexture(binding.m_Name, binding.m_Value);
+      bindGroupMaterial.BindTexture(binding.m_Name, binding.m_Value);
     }
 
     m_hMaterial = m_hNewMaterial;

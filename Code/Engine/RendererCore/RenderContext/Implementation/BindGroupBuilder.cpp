@@ -23,13 +23,6 @@ ezBindGroupBuilder::ezBindGroupBuilder() = default;
 
 void ezBindGroupBuilder::ResetBoundResources(const ezGALDevice* pDevice)
 {
-  for (auto it : m_UsesPerFrame)
-  {
-    bool bExisted = false;
-    auto it2 = m_UsesPerFrame2.FindOrAdd(it.Key(), &bExisted);
-    it2.Value() = bExisted ? ezMath::Max(it.Value(), it2.Value()) : it.Value();
-  }
-
   for (auto it : m_Missing)
   {
     bool bExisted = false;
@@ -37,8 +30,22 @@ void ezBindGroupBuilder::ResetBoundResources(const ezGALDevice* pDevice)
     it2.Value() = bExisted ? ezMath::Max(it.Value(), it2.Value()) : it.Value();
   }
 
-  m_Dirty.Clear();
-  m_UsesPerFrame.Clear();
+  for (auto it : m_OverWrites)
+  {
+    bool bExisted = false;
+    auto it2 = m_OverWrites2.FindOrAdd(it.Key(), &bExisted);
+    it2.Value() = bExisted ? ezMath::Max(it.Value(), it2.Value()) : it.Value();
+  }
+
+  for (auto it : m_Writes)
+  {
+    bool bExisted = false;
+    auto it2 = m_Writes2.FindOrAdd(it.Key(), &bExisted);
+    it2.Value() = bExisted ? ezMath::Max(it.Value(), it2.Value()) : it.Value();
+  }
+
+  m_Writes.Clear();
+  m_OverWrites.Clear();
   m_Missing.Clear();
 
   m_pDevice = pDevice;
@@ -65,7 +72,7 @@ void ezBindGroupBuilder::ResetBoundResources(const ezGALDevice* pDevice)
   EZ_ASSERT_DEBUG(!m_hDefaultSampler.IsInvalidated(), "LinearSampler should have been registered at this point.");
 }
 
-void ezBindGroupBuilder::BindSampler(ezTempHashedString sSlotName, ezGALSamplerStateHandle hSampler)
+void ezBindGroupBuilder::BindSampler(ezStringView sSlotName, ezGALSamplerStateHandle hSampler)
 {
   EZ_ASSERT_DEBUG(sSlotName != "LinearSampler", "'LinearSampler' is a reserved sampler name and must not be set manually.");
   EZ_ASSERT_DEBUG(sSlotName != "LinearClampSampler", "'LinearClampSampler' is a reserved sampler name and must not be set manually.");
@@ -86,7 +93,7 @@ void ezBindGroupBuilder::BindSampler(ezTempHashedString sSlotName, ezGALSamplerS
   InsertItem(sSlotName, item, m_BoundSamplers);
 }
 
-void ezBindGroupBuilder::BindBuffer(ezTempHashedString sSlotName, ezGALBufferHandle hBuffer, ezGALBufferRange bufferRange, ezEnum<ezGALResourceFormat> overrideTexelBufferFormat)
+void ezBindGroupBuilder::BindBuffer(ezStringView sSlotName, ezGALBufferHandle hBuffer, ezGALBufferRange bufferRange, ezEnum<ezGALResourceFormat> overrideTexelBufferFormat)
 {
   if (hBuffer.IsInvalidated())
   {
@@ -105,7 +112,7 @@ void ezBindGroupBuilder::BindBuffer(ezTempHashedString sSlotName, ezGALBufferHan
   InsertItem(sSlotName, item, m_BoundBuffers);
 }
 
-void ezBindGroupBuilder::BindTexture(ezTempHashedString sSlotName, ezGALTextureHandle hTexture, ezGALTextureRange textureRange, ezEnum<ezGALResourceFormat> overrideViewFormat)
+void ezBindGroupBuilder::BindTexture(ezStringView sSlotName, ezGALTextureHandle hTexture, ezGALTextureRange textureRange, ezEnum<ezGALResourceFormat> overrideViewFormat)
 {
   if (hTexture.IsInvalidated())
   {
@@ -134,7 +141,7 @@ void ezBindGroupBuilder::BindTexture(ezTempHashedString sSlotName, ezGALTextureH
   InsertItem(sSlotName, item, m_BoundTextures);
 }
 
-void ezBindGroupBuilder::BindTexture(ezTempHashedString sSlotName, const ezTexture2DResourceHandle& hTexture, ezResourceAcquireMode acquireMode, ezGALTextureRange textureRange, ezEnum<ezGALResourceFormat> overrideViewFormat)
+void ezBindGroupBuilder::BindTexture(ezStringView sSlotName, const ezTexture2DResourceHandle& hTexture, ezResourceAcquireMode acquireMode, ezGALTextureRange textureRange, ezEnum<ezGALResourceFormat> overrideViewFormat)
 {
   if (hTexture.IsValid())
   {
@@ -149,7 +156,7 @@ void ezBindGroupBuilder::BindTexture(ezTempHashedString sSlotName, const ezTextu
   }
 }
 
-void ezBindGroupBuilder::BindTexture(ezTempHashedString sSlotName, const ezTexture3DResourceHandle& hTexture, ezResourceAcquireMode acquireMode, ezGALTextureRange textureRange, ezEnum<ezGALResourceFormat> overrideViewFormat)
+void ezBindGroupBuilder::BindTexture(ezStringView sSlotName, const ezTexture3DResourceHandle& hTexture, ezResourceAcquireMode acquireMode, ezGALTextureRange textureRange, ezEnum<ezGALResourceFormat> overrideViewFormat)
 {
   if (hTexture.IsValid())
   {
@@ -164,7 +171,7 @@ void ezBindGroupBuilder::BindTexture(ezTempHashedString sSlotName, const ezTextu
   }
 }
 
-void ezBindGroupBuilder::BindTexture(ezTempHashedString sSlotName, const ezTextureCubeResourceHandle& hTexture, ezResourceAcquireMode acquireMode, ezGALTextureRange textureRange, ezEnum<ezGALResourceFormat> overrideViewFormat)
+void ezBindGroupBuilder::BindTexture(ezStringView sSlotName, const ezTextureCubeResourceHandle& hTexture, ezResourceAcquireMode acquireMode, ezGALTextureRange textureRange, ezEnum<ezGALResourceFormat> overrideViewFormat)
 {
   if (hTexture.IsValid())
   {
@@ -179,7 +186,7 @@ void ezBindGroupBuilder::BindTexture(ezTempHashedString sSlotName, const ezTextu
   }
 }
 
-void ezBindGroupBuilder::BindBuffer(ezTempHashedString sSlotName, ezConstantBufferStorageHandle hBuffer, ezGALBufferRange bufferRange, ezGALResourceFormat::Enum overrideTexelBufferFormat)
+void ezBindGroupBuilder::BindBuffer(ezStringView sSlotName, ezConstantBufferStorageHandle hBuffer, ezGALBufferRange bufferRange, ezGALResourceFormat::Enum overrideTexelBufferFormat)
 {
   ezConstantBufferStorageBase* pStorage = nullptr;
   if (ezRenderContext::TryGetConstantBufferStorage(hBuffer, pStorage))
@@ -207,19 +214,6 @@ void ezBindGroupBuilder::CreateBindGroup(ezGALBindGroupLayoutHandle hBindGroupLa
   {
     const ezShaderResourceBinding& binding = resourceBindings[i];
     ezGALBindGroupItem& item = out_bindGroup.m_BindGroupItems.ExpandAndGetRef();
-
-    if (m_Dirty.Contains(binding.m_sName.GetHash()))
-    {
-      if (!m_UsesPerFrame.Contains(binding.m_sName.GetString()))
-      {
-        m_UsesPerFrame.Insert(binding.m_sName.GetString(), 1);
-      }
-      else
-      {
-        ezUInt32 uiValue = m_UsesPerFrame[binding.m_sName.GetString()];
-        m_UsesPerFrame[binding.m_sName.GetString()] = uiValue + 1;
-      }
-    }
 
     switch (binding.m_ResourceType)
     {
@@ -303,32 +297,37 @@ void ezBindGroupBuilder::CreateBindGroup(ezGALBindGroupLayoutHandle hBindGroupLa
         break;
     }
   }
-  m_Dirty.Clear();
   m_bModified = false;
 }
 
-void ezBindGroupBuilder::RemoveItem(ezTempHashedString sSlotName, ezHashTable<ezUInt64, ezGALBindGroupItem>& ref_Container)
+void ezBindGroupBuilder::RemoveItem(ezStringView sSlotName, ezHashTable<ezUInt64, ezGALBindGroupItem>& ref_Container)
 {
   s_uiReads++;
-  if (ref_Container.Remove(sSlotName.GetHash()))
+  if (ref_Container.Remove(ezTempHashedString(sSlotName).GetHash()))
   {
     m_bModified = true;
     s_uiWrites++;
-    m_Dirty.Insert(sSlotName.GetHash());
+    m_OverWrites[sSlotName]++;
   }
 }
 
-void ezBindGroupBuilder::InsertItem(ezTempHashedString sSlotName, const ezGALBindGroupItem& item, ezHashTable<ezUInt64, ezGALBindGroupItem>& ref_Container)
+void ezBindGroupBuilder::InsertItem(ezStringView sSlotName, const ezGALBindGroupItem& item, ezHashTable<ezUInt64, ezGALBindGroupItem>& ref_Container)
 {
   s_uiReads++;
   ezGALBindGroupItem oldItem;
-  if (ref_Container.Insert(sSlotName.GetHash(), item, &oldItem))
+  if (ref_Container.Insert(ezTempHashedString(sSlotName).GetHash(), item, &oldItem))
   {
     if (oldItem != item)
     {
       m_bModified = true;
       s_uiWrites++;
-      m_Dirty.Insert(sSlotName.GetHash());
+      m_OverWrites[sSlotName]++;
     }
+  }
+  else
+  {
+    m_Writes[sSlotName]++;
+    m_bModified = true;
+    s_uiWrites++;
   }
 }

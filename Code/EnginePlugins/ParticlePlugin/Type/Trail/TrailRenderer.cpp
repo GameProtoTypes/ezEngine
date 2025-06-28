@@ -131,7 +131,7 @@ void ezParticleTrailRenderer::RenderBatch(const ezRenderViewContext& renderViewC
 bool ezParticleTrailRenderer::ConfigureShader(const ezParticleTrailRenderData* pRenderData, const ezRenderViewContext& renderViewContext) const
 {
   auto pRenderContext = renderViewContext.m_pRenderContext;
-  ezBindGroupBuilder& bindGroup = renderViewContext.m_pRenderContext->GetBindGroup();
+  ezBindGroupBuilder& bindGroupMaterial = renderViewContext.m_pRenderContext->GetBindGroup(EZ_GAL_BIND_GROUP_MATERIAL);
   switch (pRenderData->m_RenderMode)
   {
     case ezParticleTypeRenderMode::Additive:
@@ -147,7 +147,7 @@ bool ezParticleTrailRenderer::ConfigureShader(const ezParticleTrailRenderData* p
       break;
     case ezParticleTypeRenderMode::Distortion:
       pRenderContext->SetShaderPermutationVariable("PARTICLE_RENDER_MODE", "PARTICLE_RENDER_MODE_DISTORTION");
-      bindGroup.BindTexture("ParticleDistortionTexture", pRenderData->m_hDistortionTexture);
+      bindGroupMaterial.BindTexture("ParticleDistortionTexture", pRenderData->m_hDistortionTexture);
       break;
     case ezParticleTypeRenderMode::BlendAdd:
       pRenderContext->SetShaderPermutationVariable("PARTICLE_RENDER_MODE", "PARTICLE_RENDER_MODE_BLENDADD");

@@ -205,7 +205,7 @@ void ezShaderExplorerApp::Run()
     m_pDevice->EndCommands(pCommandEncoder);
 
     m_pDevice->EndFrame();
-    ezRenderContext::GetDefaultInstance()->ResetContextState();
+    //ezRenderContext::GetDefaultInstance()->ResetContextState();
   }
 
   // needs to be called once per frame

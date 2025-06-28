@@ -45,6 +45,8 @@ public:
     void Reset();
 
     ezUInt32 m_uiFailedDrawcalls;
+    ezUInt32 m_uiModifiedBindGroup[EZ_GAL_MAX_BIND_GROUPS] = {0};
+    ezUInt32 m_uiLayoutChanged[EZ_GAL_MAX_BIND_GROUPS] = {0};
   };
 
   Statistics GetAndResetStatistics();
@@ -140,14 +142,14 @@ public:
   /// Note that for platforms that don't support push constants, this is emulated via a constant buffer. Thus, a slot name must be provided as well which matches the name of the BEGIN_PUSH_CONSTANTS block in the shader.
   /// \param sSlotName Name of the BEGIN_PUSH_CONSTANTS block in the shader.
   /// \param data Data of the push constants. If more than 128 bytes, ezGALDeviceCapabilities::m_uiMaxPushConstantsSize should be checked to ensure the data block is not too big for the platform.
-  void SetPushConstants(ezTempHashedString sSlotName, ezArrayPtr<const ezUInt8> data);
+  void SetPushConstants(ezStringView sSlotName, ezArrayPtr<const ezUInt8> data);
 
   /// Templated version of SetPushConstants.
   /// \tparam T Type of the push constants struct.
   /// \param sSlotName Name of the BEGIN_PUSH_CONSTANTS block in the shader.
   /// \param constants Instance of type T that contains the push constants.
   template <typename T>
-  EZ_ALWAYS_INLINE void SetPushConstants(ezTempHashedString sSlotName, const T& constants)
+  EZ_ALWAYS_INLINE void SetPushConstants(ezStringView sSlotName, const T& constants)
   {
     SetPushConstants(sSlotName, ezArrayPtr<const ezUInt8>(reinterpret_cast<const ezUInt8*>(&constants), sizeof(T)));
   }
@@ -271,20 +273,23 @@ private:
 private:
   Statistics m_Statistics;
   ezBitflags<ezRenderContextFlags> m_StateFlags;
-  // Shader
+
+  // Material
+  ezMaterialResourceHandle m_hNewMaterial;
+  ezMaterialResourceHandle m_hMaterial;
+
+  // Shader Resource
   ezShaderResourceHandle m_hActiveShader;
+  ezHashTable<ezHashedString, ezHashedString> m_PermutationVariables;
+
+  // Shader Permutation
   ezShaderPermutationResourceHandle m_hActiveShaderPermutation;
   ezString m_sActiveShader;
   ezGALShaderHandle m_hActiveGALShader;
   const ezGALShader* m_pActiveGALShader = nullptr;
-
-  ezHashTable<ezHashedString, ezHashedString> m_PermutationVariables;
-  ezMaterialResourceHandle m_hNewMaterial;
-  ezMaterialResourceHandle m_hMaterial;
-
-
   ezBitflags<ezShaderBindFlags> m_ShaderBindFlags;
 
+  // Vertex / Index Buffer
   ezGALBufferHandle m_hVertexBuffers[EZ_GAL_MAX_VERTEX_BUFFER_COUNT];
   ezUInt32 m_VertexBufferStrides[EZ_GAL_MAX_VERTEX_BUFFER_COUNT] = {};
   ezEnum<ezGALVertexBindingRate> m_VertexBufferBindingRates[EZ_GAL_MAX_VERTEX_BUFFER_COUNT];

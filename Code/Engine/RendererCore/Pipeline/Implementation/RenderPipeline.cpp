@@ -1195,7 +1195,7 @@ void ezRenderPipeline::Render(ezRenderContext* pRenderContext)
     ezRenderWorld::s_RenderEvent.Broadcast(renderEvent);
   }
 
-  pRenderContext->ResetContextState();
+  //pRenderContext->ResetContextState();
   ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
   ezGALCommandEncoder* pCommandEncoder = pDevice->BeginCommands(m_sName);
   {
@@ -1291,7 +1291,7 @@ void ezRenderPipeline::Render(ezRenderContext* pRenderContext)
     ezRenderWorld::s_RenderEvent.Broadcast(renderEvent);
   }
 
-  pRenderContext->ResetContextState();
+  //pRenderContext->ResetContextState();
 
   data.Clear();
 
