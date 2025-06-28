@@ -14,7 +14,7 @@
 #  define END_PUSH_CONSTANTS(Name) ;
 #  define GET_PUSH_CONSTANT(Name, Constant) Constant
 
-#  define BEGIN_MATERIAL_CONSTANTS cbuffer materialData
+#  define BEGIN_MATERIAL_CONSTANTS cbuffer materialData BIND_RESOURCE(0, SET_MATERIAL);
 #  define END_MATERIAL_CONSTANTS ;
 #  define GetMaterialData(x) x
 

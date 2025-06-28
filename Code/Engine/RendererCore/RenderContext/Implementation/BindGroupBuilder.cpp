@@ -23,6 +23,24 @@ ezBindGroupBuilder::ezBindGroupBuilder() = default;
 
 void ezBindGroupBuilder::ResetBoundResources(const ezGALDevice* pDevice)
 {
+  for (auto it : m_UsesPerFrame)
+  {
+    bool bExisted = false;
+    auto it2 = m_UsesPerFrame2.FindOrAdd(it.Key(), &bExisted);
+    it2.Value() = bExisted ? ezMath::Max(it.Value(), it2.Value()) : it.Value();
+  }
+
+  for (auto it : m_Missing)
+  {
+    bool bExisted = false;
+    auto it2 = m_Missing2.FindOrAdd(it.Key(), &bExisted);
+    it2.Value() = bExisted ? ezMath::Max(it.Value(), it2.Value()) : it.Value();
+  }
+
+  m_Dirty.Clear();
+  m_UsesPerFrame.Clear();
+  m_Missing.Clear();
+
   m_pDevice = pDevice;
   m_bModified = true;
   m_hDefaultSampler = {};
@@ -190,6 +208,19 @@ void ezBindGroupBuilder::CreateBindGroup(ezGALBindGroupLayoutHandle hBindGroupLa
     const ezShaderResourceBinding& binding = resourceBindings[i];
     ezGALBindGroupItem& item = out_bindGroup.m_BindGroupItems.ExpandAndGetRef();
 
+    if (m_Dirty.Contains(binding.m_sName.GetHash()))
+    {
+      if (!m_UsesPerFrame.Contains(binding.m_sName.GetString()))
+      {
+        m_UsesPerFrame.Insert(binding.m_sName.GetString(), 1);
+      }
+      else
+      {
+        ezUInt32 uiValue = m_UsesPerFrame[binding.m_sName.GetString()];
+        m_UsesPerFrame[binding.m_sName.GetString()] = uiValue + 1;
+      }
+    }
+
     switch (binding.m_ResourceType)
     {
       case ezGALShaderResourceType::Sampler:
@@ -199,6 +230,7 @@ void ezBindGroupBuilder::CreateBindGroup(ezGALBindGroupLayoutHandle hBindGroupLa
         {
           item.m_Flags = ezGALBindGroupItemFlags::Sampler;
           item.m_Sampler.m_hSampler = m_hDefaultSampler;
+          m_Missing[binding.m_sName.GetString()]++;
         }
       }
       break;
@@ -219,8 +251,8 @@ void ezBindGroupBuilder::CreateBindGroup(ezGALBindGroupLayoutHandle hBindGroupLa
           item.m_Flags = ezGALBindGroupItemFlags::Buffer | ezGALBindGroupItemFlags::Fallback;
           item.m_Buffer.m_hBuffer = hBuffer;
           item.m_Buffer.m_BufferRange = pBuffer->ClampRange({});
-          ;
           item.m_Buffer.m_OverrideTexelBufferFormat = {};
+          m_Missing[binding.m_sName.GetString()]++;
         }
       }
       break;
@@ -241,6 +273,7 @@ void ezBindGroupBuilder::CreateBindGroup(ezGALBindGroupLayoutHandle hBindGroupLa
           item.m_Texture.m_hSampler = {};
           item.m_Texture.m_TextureRange = pTexture->ClampRange({});
           item.m_Texture.m_OverrideViewFormat = {};
+          m_Missing[binding.m_sName.GetString()]++;
         }
 
         if (binding.m_ResourceType == ezGALShaderResourceType::TextureAndSampler)
@@ -270,6 +303,7 @@ void ezBindGroupBuilder::CreateBindGroup(ezGALBindGroupLayoutHandle hBindGroupLa
         break;
     }
   }
+  m_Dirty.Clear();
   m_bModified = false;
 }
 
@@ -280,6 +314,7 @@ void ezBindGroupBuilder::RemoveItem(ezTempHashedString sSlotName, ezHashTable<ez
   {
     m_bModified = true;
     s_uiWrites++;
+    m_Dirty.Insert(sSlotName.GetHash());
   }
 }
 
@@ -293,6 +328,7 @@ void ezBindGroupBuilder::InsertItem(ezTempHashedString sSlotName, const ezGALBin
     {
       m_bModified = true;
       s_uiWrites++;
+      m_Dirty.Insert(sSlotName.GetHash());
     }
   }
 }

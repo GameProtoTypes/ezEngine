@@ -24,8 +24,9 @@ void ezInstanceData::BindResources(ezRenderContext* pRenderContext)
 {
   ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
 
-  ezBindGroupBuilder& bindGroup = ezRenderContext::GetDefaultInstance()->GetBindGroup();
+  ezBindGroupBuilder& bindGroup = ezRenderContext::GetDefaultInstance()->GetBindGroup(EZ_GAL_BIND_GROUP_DRAW_CALL);
   bindGroup.BindBuffer("perInstanceData", m_InstanceDataBuffer.GetCurrentBuffer());
+
   bindGroup.BindBuffer("ezObjectConstants", m_hConstantBuffer);
 }
 
@@ -41,7 +42,7 @@ ezArrayPtr<ezPerInstanceData> ezInstanceData::GetInstanceData(ezRenderContext* p
   {
     ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
     ezGALBufferHandle hBuffer = m_InstanceDataBuffer.GetNewBuffer();
-    ezBindGroupBuilder& bindGroup = ezRenderContext::GetDefaultInstance()->GetBindGroup();
+    ezBindGroupBuilder& bindGroup = ezRenderContext::GetDefaultInstance()->GetBindGroup(EZ_GAL_BIND_GROUP_DRAW_CALL);
     bindGroup.BindBuffer("perInstanceData", hBuffer);
   }
 

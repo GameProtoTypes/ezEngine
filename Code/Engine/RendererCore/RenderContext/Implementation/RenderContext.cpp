@@ -472,6 +472,13 @@ ezResult ezRenderContext::ApplyContextStates(bool bForce)
 {
   EZ_ASSERT_DEBUG(m_bRendering || m_bCompute, "Must be either in a rendering or compute scope");
 
+  // First apply material state since this can modify all other states.
+  if (bForce || m_StateFlags.IsSet(ezRenderContextFlags::MaterialBindingChanged))
+  {
+    ApplyMaterialState();
+    m_StateFlags.Remove(ezRenderContextFlags::MaterialBindingChanged);
+  }
+
   for (ezUInt32 i = 0; i < EZ_GAL_MAX_BIND_GROUPS; ++i)
   {
     if (m_BindGroupBuilders[i].IsModified())
@@ -481,21 +488,11 @@ ezResult ezRenderContext::ApplyContextStates(bool bForce)
     }
   }
 
-  // First apply material state since this can modify all other states.
-  if (bForce || m_StateFlags.IsSet(ezRenderContextFlags::MaterialBindingChanged))
-  {
-    ApplyMaterialState();
-    m_StateFlags.Remove(ezRenderContextFlags::MaterialBindingChanged);
-  }
-
-  ezShaderPermutationResource* pShaderPermutation = nullptr;
-  EZ_SCOPE_EXIT(if (pShaderPermutation != nullptr) { ezResourceManager::EndAcquireResource(pShaderPermutation); });
-
   bool bRebuildVertexDeclaration = m_StateFlags.IsAnySet(ezRenderContextFlags::ShaderStateChanged | ezRenderContextFlags::MeshBufferBindingChanged);
 
   if (bForce || m_StateFlags.IsSet(ezRenderContextFlags::ShaderStateChanged))
   {
-    pShaderPermutation = ApplyShaderState();
+    auto pShaderPermutation = ApplyShaderState();
     if (pShaderPermutation == nullptr)
     {
       return EZ_FAILURE;
@@ -504,38 +501,23 @@ ezResult ezRenderContext::ApplyContextStates(bool bForce)
     m_StateFlags.Remove(ezRenderContextFlags::ShaderStateChanged);
   }
 
-  if (m_hActiveShaderPermutation.IsValid())
+  if (m_pActiveGALShader)
   {
     const bool bDirty = (bForce || m_StateFlags.IsAnySet(ezRenderContextFlags::BindGroupLayoutChanged | ezRenderContextFlags::BindGroupChanged));
 
-    const ezGALShader* pShader = nullptr;
-    if (bDirty)
-    {
-      if (pShaderPermutation == nullptr)
-      {
-        pShaderPermutation = ezResourceManager::BeginAcquireResource(m_hActiveShaderPermutation, ezResourceAcquireMode::BlockTillLoaded);
-      }
-      if (pShaderPermutation == nullptr)
-      {
-        return EZ_FAILURE;
-      }
-      // #TODO_SHADER It's a bit unclean that we need to acquire the GAL shader on this level. Unfortunately, we need the resource binding on both the GAL and the high level renderer and the only alternative is some kind of duplication of the data.
-      pShader = ezGALDevice::GetDefaultDevice()->GetShader(m_hActiveGALShader);
-    }
-
-
-    ezLogBlock applyBindingsBlock("Applying Shader Bindings", pShaderPermutation ? pShaderPermutation->GetResourceDescription().GetData() : "");
+    ezLogBlock applyBindingsBlock("Applying Shader Bindings", m_sActiveShader);
     UploadConstants();
     if (bDirty)
     {
-      const ezUInt32 uiBindGroups = pShader->GetBindGroupCount();
-      const bool bForceBindGroupUpdate = bForce || m_StateFlags.IsSet(ezRenderContextFlags::BindGroupLayoutChanged);
+      const ezUInt32 uiBindGroups = m_pActiveGALShader->GetBindGroupCount();
       for (ezUInt32 uiBindGroup = 0; uiBindGroup < uiBindGroups; uiBindGroup++)
       {
+        const bool bForceBindGroupUpdate = bForce || m_bDirtyBindGroups[uiBindGroup];
         if (bForceBindGroupUpdate || m_BindGroupBuilders[uiBindGroup].IsModified())
         {
-          EZ_SUCCEED_OR_RETURN(ApplyBindGroup(pShader, uiBindGroup));
+          EZ_SUCCEED_OR_RETURN(ApplyBindGroup(m_pActiveGALShader, uiBindGroup));
         }
+        m_bDirtyBindGroups[uiBindGroup] = false;
       }
       m_StateFlags.Remove(ezRenderContextFlags::BindGroupLayoutChanged);
       m_StateFlags.Remove(ezRenderContextFlags::BindGroupChanged);
@@ -583,6 +565,10 @@ ezResult ezRenderContext::ApplyContextStates(bool bForce)
       m_pGALCommandEncoder->SetComputePipeline(ezGALPipelineCache::GetPipeline(m_ComputePipeline));
   }
 
+  for (ezUInt32 i = 0; i < m_pActiveGALShader->GetBindGroupCount(); ++i)
+  {
+    EZ_ASSERT_DEV(m_pActiveGALShader->GetBindGroupLayout(i) == m_BindGroups[i].m_hBindGroupLayout, "Invalid Bind Group Layout");
+  }
   return EZ_SUCCESS;
 }
 
@@ -593,13 +579,15 @@ void ezRenderContext::ResetContextState()
   m_StateFlags = ezRenderContextFlags::AllStatesInvalid;
 
   m_hActiveShader.Invalidate();
+  m_hActiveShaderPermutation.Invalidate();
+  m_sActiveShader.Clear();
   m_hActiveGALShader.Invalidate();
+  m_pActiveGALShader = nullptr;
 
   m_PermutationVariables.Clear();
   m_hNewMaterial.Invalidate();
   m_hMaterial.Invalidate();
 
-  m_hActiveShaderPermutation.Invalidate();
 
   static_assert(EZ_ARRAY_SIZE(m_hVertexBuffers) == EZ_GAL_MAX_VERTEX_BUFFER_COUNT);
   for (ezUInt32 i = 0; i < EZ_ARRAY_SIZE(m_hVertexBuffers); ++i)
@@ -619,6 +607,9 @@ void ezRenderContext::ResetContextState()
   for (ezUInt32 i = 0; i < EZ_GAL_MAX_BIND_GROUPS; ++i)
   {
     m_BindGroupBuilders[i].ResetBoundResources(ezGALDevice::GetDefaultDevice());
+    m_BindGroups[i].m_hBindGroupLayout.Invalidate();
+    m_BindGroups[i].m_BindGroupItems.Clear();
+    m_bDirtyBindGroups[i] = false;
   }
 }
 
@@ -1003,7 +994,7 @@ ezShaderPermutationResource* ezRenderContext::ApplyShaderState()
 {
   m_hActiveGALShader.Invalidate();
 
-  m_StateFlags.Add(ezRenderContextFlags::BindGroupLayoutChanged | ezRenderContextFlags::PipelineChanged);
+  m_StateFlags.Add(ezRenderContextFlags::PipelineChanged);
 
   if (!m_hActiveShader.IsValid())
     return nullptr;
@@ -1022,10 +1013,22 @@ ezShaderPermutationResource* ezRenderContext::ApplyShaderState()
     return nullptr;
   }
 
+  m_sActiveShader = pShaderPermutation->GetResourceDescription();
   m_hActiveGALShader = pShaderPermutation->GetGALShader();
   m_GraphicsPipeline.m_hShader = m_hActiveGALShader;
   m_ComputePipeline.m_hShader = m_hActiveGALShader;
   EZ_ASSERT_DEV(!m_hActiveGALShader.IsInvalidated(), "Invalid GAL Shader handle.");
+  m_pActiveGALShader = ezGALDevice::GetDefaultDevice()->GetShader(m_hActiveGALShader);
+  EZ_ASSERT_DEV(m_pActiveGALShader, "Invalid GAL Shader handle.");
+  const ezUInt32 uiBindGroups = m_pActiveGALShader->GetBindGroupCount();
+  for (ezUInt32 i = 0; i < uiBindGroups; ++i)
+  {
+    if (m_pActiveGALShader->GetBindGroupLayout(i) != m_BindGroups[i].m_hBindGroupLayout)
+    {
+      m_bDirtyBindGroups[i] = true;
+      m_StateFlags.Add(ezRenderContextFlags::BindGroupLayoutChanged);
+    }
+  }
 
   // Set render state from shader
   if (!m_bCompute)
@@ -1065,7 +1068,7 @@ void ezRenderContext::ApplyMaterialState()
 
     BindShaderInternal(data->m_hShader, ezShaderBindFlags::Default);
 
-    ezBindGroupBuilder& bindGroup = GetBindGroup();
+    ezBindGroupBuilder& bindGroup = GetBindGroup(EZ_GAL_BIND_GROUP_MATERIAL);
     if (!data->m_hStructuredBuffer.IsInvalidated())
     {
       bindGroup.BindBuffer("materialData", data->m_hStructuredBuffer);

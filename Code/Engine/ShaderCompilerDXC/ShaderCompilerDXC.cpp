@@ -310,6 +310,16 @@ ezResult ezShaderCompilerDXC::ModifyShaderSource(ezShaderProgramData& inout_data
 
 ezResult ezShaderCompilerDXC::DefineShaderResourceBindings(const ezShaderProgramData& data, ezHashTable<ezHashedString, ezShaderResourceBinding>& inout_resourceBinding, ezLogInterface* pLog)
 {
+  // Force material parameter into the material bind group
+  for (const ezString& sMaterialParameter : data.m_MaterialParameters)
+  {
+    ezShaderResourceBinding* pBinding = nullptr;
+    if (inout_resourceBinding.TryGetValue(ezTempHashedString(sMaterialParameter.GetView()), pBinding))
+    {
+      pBinding->m_iSet = EZ_GAL_BIND_GROUP_MATERIAL;
+    }
+  }
+
   // Determine which indices are hard-coded in the shader already.
   ezHybridArray<ezHybridBitfield<64>, 4> slotInUseInSet;
   for (auto it : inout_resourceBinding)

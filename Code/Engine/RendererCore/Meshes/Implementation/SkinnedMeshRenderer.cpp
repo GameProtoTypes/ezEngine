@@ -34,7 +34,7 @@ void ezSkinnedMeshRenderer::SetAdditionalData(const ezRenderViewContext& renderV
   {
     pContext->SetShaderPermutationVariable("VERTEX_SKINNING", "TRUE");
 
-    ezBindGroupBuilder& bindGroup = pContext->GetBindGroup();
+    ezBindGroupBuilder& bindGroup = pContext->GetBindGroup(EZ_GAL_BIND_GROUP_DRAW_CALL);
     bindGroup.BindBuffer("skinningTransforms", pSkinnedRenderData->m_hSkinningTransforms);
   }
 }

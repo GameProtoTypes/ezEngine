@@ -44,7 +44,7 @@ void ezLensFlareRenderer::RenderBatch(const ezRenderViewContext& renderViewConte
   ezGALBufferHandle hLensFlareData = CreateLensFlareDataBuffer(uiBufferSize);
   EZ_SCOPE_EXIT(DeleteLensFlareDataBuffer(hLensFlareData));
 
-  ezBindGroupBuilder& bindGroup = ezRenderContext::GetDefaultInstance()->GetBindGroup();
+  ezBindGroupBuilder& bindGroup = ezRenderContext::GetDefaultInstance()->GetBindGroup(EZ_GAL_BIND_GROUP_RENDER_PASS);
   pContext->BindShader(m_hShader);
   bindGroup.BindBuffer("lensFlareData", hLensFlareData);
   bindGroup.BindTexture("LensFlareTexture", pRenderData->m_hTexture);

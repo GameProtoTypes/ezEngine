@@ -271,14 +271,17 @@ private:
 private:
   Statistics m_Statistics;
   ezBitflags<ezRenderContextFlags> m_StateFlags;
+  // Shader
   ezShaderResourceHandle m_hActiveShader;
+  ezShaderPermutationResourceHandle m_hActiveShaderPermutation;
+  ezString m_sActiveShader;
   ezGALShaderHandle m_hActiveGALShader;
+  const ezGALShader* m_pActiveGALShader = nullptr;
 
   ezHashTable<ezHashedString, ezHashedString> m_PermutationVariables;
   ezMaterialResourceHandle m_hNewMaterial;
   ezMaterialResourceHandle m_hMaterial;
 
-  ezShaderPermutationResourceHandle m_hActiveShaderPermutation;
 
   ezBitflags<ezShaderBindFlags> m_ShaderBindFlags;
 
@@ -299,6 +302,7 @@ private:
   ezGALComputePipelineCreationDescription m_ComputePipeline;
   ezBindGroupBuilder m_BindGroupBuilders[EZ_GAL_MAX_BIND_GROUPS];
   ezGALBindGroupCreationDescription m_BindGroups[EZ_GAL_MAX_BIND_GROUPS];
+  bool m_bDirtyBindGroups[EZ_GAL_MAX_BIND_GROUPS] = {};
 
   ezConstantBufferStorageHandle m_hGlobalConstantBufferStorage;
   ezConstantBufferStorageHandle m_hPushConstantsStorage;

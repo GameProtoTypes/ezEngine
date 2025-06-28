@@ -69,4 +69,12 @@ private:
   ezHashTable<ezUInt64, ezGALBindGroupItem> m_BoundSamplers;
   ezHashTable<ezUInt64, ezGALBindGroupItem> m_BoundBuffers;
   ezHashTable<ezUInt64, ezGALBindGroupItem> m_BoundTextures;
+
+  ezSet<ezUInt64> m_Dirty;
+  ezMap<ezString, ezUInt32> m_UsesPerFrame;
+
+  ezMap<ezString, ezUInt32> m_UsesPerFrame2;
+
+  ezMap<ezString, ezUInt32> m_Missing;
+  ezMap<ezString, ezUInt32> m_Missing2;
 };
