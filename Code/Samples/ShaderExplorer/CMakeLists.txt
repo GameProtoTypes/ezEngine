@@ -1,7 +1,6 @@
 ez_cmake_init()
 
 ez_requires_renderer()
-ez_requires_desktop()
 
 # Get the name of this folder as the project name
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME_WE)
@@ -21,7 +20,8 @@ endif()
 if(EZ_CMAKE_PLATFORM_ANDROID)
     target_link_libraries(${PROJECT_NAME}
         PUBLIC
-        InspectorPlugin
+        #InspectorPlugin
+        #FileservePlugin
     )
 endif()
 

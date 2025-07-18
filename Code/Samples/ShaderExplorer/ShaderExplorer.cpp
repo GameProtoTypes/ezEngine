@@ -222,7 +222,7 @@ void ezShaderExplorerApp::Run()
 void ezShaderExplorerApp::AfterCoreSystemsStartup()
 {
 #if EZ_ENABLED(USE_FILESERVE)
-  ezPlugin::LoadPlugin("ezFileservePlugin").AssertSuccess("Failed to load FileServe plugin");
+  // ezPlugin::LoadPlugin("ezFileservePlugin").AssertSuccess("Failed to load FileServe plugin");
 #endif
 
   m_pCamera = EZ_DEFAULT_NEW(ezCamera);
