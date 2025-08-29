@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <RendererFoundation/Descriptors/Descriptors.h>
@@ -15,3 +14,4 @@ protected:
   ezGALBindGroupLayout(const ezGALBindGroupLayoutCreationDescription& Description);
   virtual ~ezGALBindGroupLayout();
 };
+

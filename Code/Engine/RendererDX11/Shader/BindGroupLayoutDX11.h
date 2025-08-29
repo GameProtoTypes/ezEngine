@@ -5,6 +5,7 @@
 #include <RendererFoundation/RendererFoundationDLL.h>
 #include <RendererFoundation/Shader/BindGroupLayout.h>
 
+
 class ezGALBindGroupLayoutDX11 : public ezGALBindGroupLayout
 {
 public:
@@ -19,3 +20,4 @@ protected:
 
   virtual ~ezGALBindGroupLayoutDX11();
 };
+

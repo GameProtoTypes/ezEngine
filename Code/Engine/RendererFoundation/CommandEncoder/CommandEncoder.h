@@ -45,6 +45,9 @@ public:
   /// \param uiBindGroup The bind group slot index to set
   /// \param bindGroup Description containing the layout and resource items to bind
   void SetBindGroup(ezUInt32 uiBindGroup, const ezGALBindGroupCreationDescription& bindGroup);
+
+  void SetBindGroup(ezUInt32 uiBindGroup, ezGALBindGroupHandle hBindGroup);
+
   void SetPushConstants(ezArrayPtr<const ezUInt8> data);
 
   // GPU -> CPU query functions

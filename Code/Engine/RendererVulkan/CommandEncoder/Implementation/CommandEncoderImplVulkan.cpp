@@ -19,7 +19,6 @@
 #include <RendererVulkan/Resources/TextureVulkan.h>
 #include <RendererVulkan/Shader/BindGroupLayoutVulkan.h>
 #include <RendererVulkan/Shader/ShaderVulkan.h>
-#include <RendererVulkan/Shader/VertexDeclarationVulkan.h>
 #include <RendererVulkan/State/ComputePipelineVulkan.h>
 #include <RendererVulkan/State/GraphicsPipelineVulkan.h>
 #include <RendererVulkan/State/StateVulkan.h>

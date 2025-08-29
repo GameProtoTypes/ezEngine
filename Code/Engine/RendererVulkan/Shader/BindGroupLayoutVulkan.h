@@ -7,6 +7,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+
 class ezGALBindGroupLayoutVulkan : public ezGALBindGroupLayout
 {
 public:
@@ -26,3 +27,4 @@ protected:
 private:
   vk::DescriptorSetLayout m_DescriptorSetLayout;
 };
+

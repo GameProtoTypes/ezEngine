@@ -13,8 +13,6 @@
 #include <RendererFoundation/Device/DeviceFactory.h>
 #include <RendererFoundation/Device/SwapChain.h>
 #include <RendererFoundation/Profiling/Profiling.h>
-#include <RendererFoundation/RendererReflection.h>
-#include <RendererFoundation/Resources/RendererFallbackResources.h>
 #include <RendererVulkan/Cache/ResourceCacheVulkan.h>
 #include <RendererVulkan/CommandEncoder/CommandEncoderImplVulkan.h>
 #include <RendererVulkan/Device/DeviceVulkan.h>
@@ -33,6 +31,7 @@
 #include <RendererVulkan/Resources/SharedTextureVulkan.h>
 #include <RendererVulkan/Resources/TextureVulkan.h>
 #include <RendererVulkan/Shader/BindGroupLayoutVulkan.h>
+#include <RendererVulkan/Shader/BindGroupVulkan.h>
 #include <RendererVulkan/Shader/PipelineLayoutVulkan.h>
 #include <RendererVulkan/Shader/ShaderVulkan.h>
 #include <RendererVulkan/Shader/VertexDeclarationVulkan.h>
@@ -1107,6 +1106,28 @@ void ezGALDeviceVulkan::DestroyBindGroupLayoutPlatform(ezGALBindGroupLayout* pBi
   ezGALBindGroupLayoutVulkan* pVulkanBindGroupLayout = static_cast<ezGALBindGroupLayoutVulkan*>(pBindGroupLayout);
   pVulkanBindGroupLayout->DeInitPlatform(this).IgnoreResult();
   EZ_DELETE(&m_Allocator, pVulkanBindGroupLayout);
+}
+
+ezGALBindGroup* ezGALDeviceVulkan::CreateBindGroupPlatform(const ezGALBindGroupCreationDescription& Description)
+{
+  ezGALBindGroupVulkan* pVulkanBindGroup = EZ_NEW(&m_Allocator, ezGALBindGroupVulkan, Description);
+
+  if (pVulkanBindGroup->InitPlatform(this).Succeeded())
+  {
+    return pVulkanBindGroup;
+  }
+  else
+  {
+    EZ_DELETE(&m_Allocator, pVulkanBindGroup);
+    return nullptr;
+  }
+}
+
+void ezGALDeviceVulkan::DestroyBindGroupPlatform(ezGALBindGroup* pBindGroup)
+{
+  ezGALBindGroupVulkan* pVulkanBindGroup = static_cast<ezGALBindGroupVulkan*>(pBindGroup);
+  pVulkanBindGroup->DeInitPlatform(this).IgnoreResult();
+  EZ_DELETE(&m_Allocator, pVulkanBindGroup);
 }
 
 ezGALPipelineLayout* ezGALDeviceVulkan::CreatePipelineLayoutPlatform(const ezGALPipelineLayoutCreationDescription& Description)
