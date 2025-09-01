@@ -105,7 +105,9 @@ void ezVisualScriptClassAssetDocument::UpdateAssetDocumentInfo(ezAssetDocumentIn
 
     ezExposedParameter* param = EZ_DEFAULT_NEW(ezExposedParameter);
     param->m_sName = v.m_sName.GetString();
+    param->m_sType = ezVisualScriptDataType::GetRtti(static_cast<ezVisualScriptDataType::Enum>(v.m_Type.GetValue()))->GetTypeName();
     param->m_DefaultValue = v.m_DefaultValue;
+    param->m_Category = ezVisualScriptVariableCategory::GetPropertyCategory(v.m_Category);
 
     pExposedParams->m_Parameters.PushBack(param);
   }
