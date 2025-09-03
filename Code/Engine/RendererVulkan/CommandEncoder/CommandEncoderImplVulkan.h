@@ -39,6 +39,7 @@ public:
   // ezGALCommandEncoderCommonPlatformInterface
   // State setting functions
   virtual void SetBindGroupPlatform(ezUInt32 uiBindGroup, const ezGALBindGroupCreationDescription& bindGroup) override;
+  virtual void SetBindGroupPlatform(ezUInt32 uiBindGroup, const ezGALBindGroup* pBindGroup) override;
   virtual void SetPushConstantsPlatform(ezArrayPtr<const ezUInt8> data) override;
 
   // GPU -> CPU query functions
@@ -197,6 +198,7 @@ private:
 
   // Bind Groups
   ezGALBindGroupCreationDescription m_BindGroups[EZ_GAL_MAX_BIND_GROUPS];
+  const ezGALBindGroup* m_pBindGroups[EZ_GAL_MAX_BIND_GROUPS] = {};
   DynamicOffsets m_DynamicOffsets[EZ_GAL_MAX_BIND_GROUPS];
 
   // Descriptor Writes

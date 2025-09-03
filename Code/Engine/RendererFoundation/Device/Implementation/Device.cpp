@@ -282,8 +282,8 @@ Handle ezGALDevice::TryGetHashedResource(ezUInt32 uiHash, Table& table, CacheTab
   return {};
 }
 
-template <typename Handle, typename Resource, typename Table, typename CacheTable>
-Handle ezGALDevice::InsertHashedResource(ezUInt32 uiHash, Resource* pResource, Table& table, CacheTable& cacheTable, ezUInt32& ref_uiCounter)
+template <typename Handle, typename Resource, typename Table, typename CacheTable, typename HashType>
+Handle ezGALDevice::InsertHashedResource(HashType uiHash, Resource* pResource, Table& table, CacheTable& cacheTable, ezUInt32& ref_uiCounter)
 {
   if (pResource != nullptr)
   {
@@ -432,6 +432,17 @@ ezGALBindGroupHandle ezGALDevice::CreateBindGroup(const ezGALBindGroupCreationDe
 
   ezGALBindGroup* pBindGroup = CreateBindGroupPlatform(desc);
 
+  const ezGALBindGroupCreationDescription& desc2 = pBindGroup->GetDescription();
+  EZ_ASSERT_DEBUG(desc.m_hBindGroupLayout == desc2.m_hBindGroupLayout, "");
+  EZ_ASSERT_DEBUG(desc.m_BindGroupItems.GetCount() == desc2.m_BindGroupItems.GetCount(), "");
+
+  EZ_ASSERT_DEBUG(desc.CalculateHash() == desc2.CalculateHash(), "");
+  for (ezUInt32 i = 0; i < desc2.m_BindGroupItems.GetCount(); ++i)
+  {
+    EZ_ASSERT_DEBUG(desc.m_BindGroupItems[i] == desc2.m_BindGroupItems[i], "");
+  }
+
+
   {
     ezSet<const ezGALResourceBase*> dependencies;
     const ezGALBindGroupLayout* pLayout = GetBindGroupLayout(desc.m_hBindGroupLayout);
@@ -484,6 +495,8 @@ ezGALBindGroupHandle ezGALDevice::CreateBindGroup(const ezGALBindGroupCreationDe
 
     m_BindGroupTracker.AddResource(pBindGroup, dependencies);
   }
+
+
   return InsertHashedResource<ezGALBindGroupHandle>(uiHash, pBindGroup, m_BindGroups, m_BindGroupTable, m_uiBindGroups);
 }
 

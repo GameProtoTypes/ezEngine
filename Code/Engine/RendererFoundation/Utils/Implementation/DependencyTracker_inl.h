@@ -59,7 +59,8 @@ void ezDependencyTracker<Resource, Dependency>::DependencyDestroyed(Dependency* 
     {
       Item* pCurrentItem = pItem;
       pItem = pItem->m_pNextResource;
-      invalidResources.Insert(pItem->m_pResource);
+      invalidResources.Insert(pCurrentItem->m_pResource);
+      // This will destroy pCurrentItem so we must move pItem forward before this.
       RemoveDependencyItem(dependencyHead, pCurrentItem);
     }
     m_DependencyHead.Remove(dependencyHead);

@@ -98,6 +98,7 @@ void ezGALCommandEncoderImplVulkan::Reset()
     m_BindGroupDirty[i] = true;
     m_BindGroups[i].m_hBindGroupLayout = {};
     m_BindGroups[i].m_BindGroupItems.Clear();
+    m_pBindGroups[i] = nullptr;
     m_DynamicOffsets[i].m_DynamicUniformBuffers.Clear();
     m_DynamicOffsets[i].m_DynamicUniformVkBuffers.Clear();
     m_DynamicOffsets[i].m_DynamicUniformBufferOffsets.Clear();
@@ -158,7 +159,15 @@ void ezGALCommandEncoderImplVulkan::SetCurrentCommandBuffer(vk::CommandBuffer* c
 void ezGALCommandEncoderImplVulkan::SetBindGroupPlatform(ezUInt32 uiBindGroup, const ezGALBindGroupCreationDescription& bindGroup)
 {
   m_BindGroups[uiBindGroup] = bindGroup;
+  m_pBindGroups[uiBindGroup] = nullptr;
   m_BindGroupDirty[uiBindGroup] = true;
+}
+
+void ezGALCommandEncoderImplVulkan::SetBindGroupPlatform(ezUInt32 uiBindGroup, const ezGALBindGroup* pBindGroup)
+{
+  SetBindGroupPlatform(uiBindGroup, pBindGroup->GetDescription());
+  //m_pBindGroups[uiBindGroup] = pBindGroup;
+  //m_BindGroupDirty[uiBindGroup] = true;
 }
 
 void ezGALCommandEncoderImplVulkan::SetPushConstantsPlatform(ezArrayPtr<const ezUInt8> data)

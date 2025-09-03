@@ -471,6 +471,7 @@ ezResult ezRenderContext::ApplyContextStates(bool bForce)
   {
     ApplyMaterialState();
     m_StateFlags.Remove(ezRenderContextFlags::MaterialBindingChanged);
+    m_StateFlags.Add(ezRenderContextFlags::BindGroupChanged);
   }
 
   for (ezUInt32 i = 0; i < EZ_GAL_MAX_BIND_GROUPS; ++i)
@@ -562,7 +563,14 @@ ezResult ezRenderContext::ApplyContextStates(bool bForce)
   {
     for (ezUInt32 i = 0; i < m_pActiveGALShader->GetBindGroupCount(); ++i)
     {
-      EZ_ASSERT_DEV(m_pActiveGALShader->GetBindGroupLayout(i) == m_BindGroups[i].m_hBindGroupLayout, "Invalid Bind Group Layout");
+      if (i == EZ_GAL_BIND_GROUP_MATERIAL && m_hMaterial.IsValid())
+      {
+
+      }
+      else
+      {
+        EZ_ASSERT_DEV(m_pActiveGALShader->GetBindGroupLayout(i) == m_BindGroups[i].m_hBindGroupLayout, "Invalid Bind Group Layout");
+      }
     }
   }
   return EZ_SUCCESS;
@@ -1089,30 +1097,32 @@ void ezRenderContext::ApplyMaterialState()
 
     BindShaderInternal(data->m_hShader, ezShaderBindFlags::Default);
 
-    ezBindGroupBuilder& bindGroupMaterial = GetBindGroup(EZ_GAL_BIND_GROUP_MATERIAL);
-    if (!data->m_hStructuredBuffer.IsInvalidated())
-    {
-      bindGroupMaterial.BindBuffer("materialData", data->m_hStructuredBuffer);
-    }
-    else if (!data->m_hConstantBuffer.IsInvalidated())
-    {
-      bindGroupMaterial.BindBuffer("materialData", data->m_hConstantBuffer);
-    }
+
+//
+//    ezBindGroupBuilder& bindGroupMaterial = GetBindGroup(EZ_GAL_BIND_GROUP_MATERIAL);
+//    if (!data->m_hStructuredBuffer.IsInvalidated())
+//    {
+//      bindGroupMaterial.BindBuffer("materialData", data->m_hStructuredBuffer);
+//    }
+//    else if (!data->m_hConstantBuffer.IsInvalidated())
+//    {
+//      bindGroupMaterial.BindBuffer("materialData", data->m_hConstantBuffer);
+//    }
 
     for (const ezPermutationVar& perm : data->m_PermutationVars)
     {
       SetShaderPermutationVariableInternal(perm.m_sName, perm.m_sValue);
     }
-
-    for (const ezMaterialResourceDescriptor::Texture2DBinding& binding : data->m_Texture2DBindings)
-    {
-      bindGroupMaterial.BindTexture(binding.m_Name, binding.m_Value);
-    }
-
-    for (const ezMaterialResourceDescriptor::TextureCubeBinding& binding : data->m_TextureCubeBindings)
-    {
-      bindGroupMaterial.BindTexture(binding.m_Name, binding.m_Value);
-    }
+//
+//    for (const ezMaterialResourceDescriptor::Texture2DBinding& binding : data->m_Texture2DBindings)
+//    {
+//      bindGroupMaterial.BindTexture(binding.m_Name, binding.m_Value);
+//    }
+//
+//    for (const ezMaterialResourceDescriptor::TextureCubeBinding& binding : data->m_TextureCubeBindings)
+//    {
+//      bindGroupMaterial.BindTexture(binding.m_Name, binding.m_Value);
+//    }
 
     m_hMaterial = m_hNewMaterial;
   }
@@ -1124,6 +1134,17 @@ ezResult ezRenderContext::ApplyBindGroup(const ezGALShader* pShader, ezUInt32 ui
   if (hLayout.IsInvalidated())
     return EZ_FAILURE;
 
+  if (uiBindGroup == EZ_GAL_BIND_GROUP_MATERIAL && m_hMaterial.IsValid())
+  {
+    ezResourceLock<ezMaterialResource> pMaterial(m_hNewMaterial, ezResourceAcquireMode::AllowLoadingFallback);
+
+    ezGALBindGroupHandle hBindGroup = ezMaterialManager::GetMaterialBindGroup(pMaterial.GetPointer(), hLayout);
+    if (hBindGroup.IsInvalidated())
+      return EZ_FAILURE;
+
+    m_pGALCommandEncoder->SetBindGroup(uiBindGroup, hBindGroup);
+    return EZ_SUCCESS;
+  }
   m_BindGroupBuilders[uiBindGroup].CreateBindGroup(hLayout, m_BindGroups[uiBindGroup]);
   m_pGALCommandEncoder->SetBindGroup(uiBindGroup, m_BindGroups[uiBindGroup]);
   return EZ_SUCCESS;

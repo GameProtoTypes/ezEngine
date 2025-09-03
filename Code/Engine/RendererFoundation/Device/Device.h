@@ -284,8 +284,8 @@ protected:
 
   template <typename Handle, typename Resource, typename Table, typename CacheTable>
   Handle TryGetHashedResource(ezUInt32 uiHash, Table& table, CacheTable& cacheTable, ezUInt32 galObjectType, ezUInt32& ref_uiCounter);
-  template <typename Handle, typename Resource, typename Table, typename CacheTable>
-  Handle InsertHashedResource(ezUInt32 uiHash, Resource* pResource, Table& table, CacheTable& cacheTable, ezUInt32& ref_uiCounter);
+  template <typename Handle, typename Resource, typename Table, typename CacheTable, typename HashType>
+  Handle InsertHashedResource(HashType uiHash, Resource* pResource, Table& table, CacheTable& cacheTable, ezUInt32& ref_uiCounter);
   template <typename Resource, typename Handle, typename Table>
   void DestroyHashedResource(Handle hResource, Table& table, ezUInt32 galObjectType, ezUInt32& ref_uiCounter);
 
