@@ -11,7 +11,7 @@ o
 		s %Category{"ezPropertyCategory::Member"}
 		f %DefaultValue{0x0000803F}
 		s %Name{"Spacing"}
-		s %Type{"ezVariant"}
+		s %Type{"float"}
 	}
 }
 o
@@ -39,7 +39,7 @@ o
 		s %AssetType{"VisualScriptClass"}
 		VarArray %Dependencies{}
 		Uuid %DocumentID{u4{12892982444285199766,5260723139333185655}}
-		u4 %Hash{1002663788699772084}
+		u4 %Hash{9274952464091678917}
 		VarArray %MetaInfo
 		{
 			Uuid{u4{10698852245720595768,15996515677871391451}}
@@ -663,7 +663,7 @@ o
 	u3 %v{1}
 	p
 	{
-		s %Expression{"var s = max(Spacing, 0.01)\nvar n = floor(TotalLength / s)\nNumObjects = n\nActualSpacing = TotalLength / n"}
+		s %Expression{"var s = max(Spacing, 0.1)\nvar n = floor(TotalLength / s)\nNumObjects = n\nActualSpacing = TotalLength / n"}
 		VarArray %Inputs
 		{
 			Uuid{u4{7747249171085619107,4964986830983276290}}
@@ -1179,7 +1179,7 @@ o
 		f %DefaultValue{0x0000803F}
 		b %Expose{1}
 		HashedString %Name{s{"Spacing"}}
-		s %Type{"ezVisualScriptVariableType::Variant"}
+		s %Type{"ezVisualScriptVariableType::Float"}
 	}
 }
 o
