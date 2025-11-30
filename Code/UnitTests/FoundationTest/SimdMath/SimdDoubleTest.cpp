@@ -10,21 +10,21 @@ EZ_CREATE_SIMPLE_TEST(SimdMath, SimdDouble)
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
     // In debug the default constructor initializes everything with NaN.
     ezSimdDouble vDefCtor;
-    EZ_TEST_BOOL(ezMath::IsNaN((float)vDefCtor));
+    EZ_TEST_BOOL(ezMath::IsNaN((double)vDefCtor));
 #else
 // GCC assumes that the contents of the memory before calling the default constructor are irrelevant.
 // So it optimizes away the 1,2,3,4 initializer completely.
 #  if EZ_DISABLED(EZ_COMPILER_GCC)
     // Placement new of the default constructor should not have any effect on the previous data.
-    alignas(16) float testBlock[4] = {1, 2, 3, 4};
+    alignas(32) double testBlock[4] = {1, 2, 3, 4};
     ezSimdDouble* pDefCtor = ::new ((void*)&testBlock[0]) ezSimdDouble;
-    EZ_TEST_BOOL_MSG((float)(*pDefCtor) == 1.0f, "Default constructed value is %f", (float)(*pDefCtor));
+    EZ_TEST_BOOL_MSG((double)(*pDefCtor) == 1.0f, "Default constructed value is %lf", (double)(*pDefCtor));
 #  endif
 #endif
 
     // Make sure the class didn't accidentally change in size.
 #if EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_AVX
-    static_assert(sizeof(ezSimdDouble) == 16);
+    static_assert(sizeof(ezSimdDouble) == 32);
     static_assert(alignof(ezSimdDouble) == 16);
 #endif
 

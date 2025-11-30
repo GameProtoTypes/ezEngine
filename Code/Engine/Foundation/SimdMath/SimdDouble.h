@@ -33,8 +33,8 @@ public:
     /// \brief Constructs from the internal implementation type.
   ezSimdDouble(ezInternal::QuadDouble v); 
 
-  /// \brief Returns the stored number as a standard float.
-  operator float() const; 
+  // /// \brief Returns the stored number as a standard float.
+  // operator float() const; 
 
     /// \brief Returns the stored number as a standard double.
   operator double() const; 
@@ -65,12 +65,19 @@ public:
   bool operator<(const ezSimdDouble& f) const;                
   bool operator<=(const ezSimdDouble& f) const;               
 
-  bool operator==(double f) const;                            
-  bool operator!=(double f) const;                            
-  bool operator>(double f) const;                             
-  bool operator>=(double f) const;                            
-  bool operator<(double f) const;                             
-  bool operator<=(double f) const;                            
+  bool operator==(double f) const;
+  bool operator!=(double f) const;
+  bool operator>(double f) const;
+  bool operator>=(double f) const;
+  bool operator<(double f) const;
+  bool operator<=(double f) const;
+
+  bool operator==(float f) const;
+  bool operator!=(float f) const;
+  bool operator>(float f) const;
+  bool operator>=(float f) const;
+  bool operator<(float f) const;
+  bool operator<=(float f) const;
 
   template <ezMathAcc::Enum acc = ezMathAcc::FULL>
   ezSimdDouble GetReciprocal() const;                         
