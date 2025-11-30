@@ -69,9 +69,7 @@ EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(ezInternal::QuadDouble v)
 
 EZ_ALWAYS_INLINE ezSimdDouble::operator double() const
 {
-  double d;
-  _mm256_store_pd(&d, m_v);
-  return d;
+  return _mm_cvtsd_f64(_mm256_castpd256_pd128(m_v));
 }
 
 
