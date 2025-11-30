@@ -1,0 +1,162 @@
+#include <FoundationTest/FoundationTestPCH.h>
+
+#include <Foundation/SimdMath/SimdDouble.h>
+
+
+EZ_CREATE_SIMPLE_TEST(SimdMath, SimdDouble)
+{
+  EZ_TEST_BLOCK(ezTestBlock::Enabled, "Constructor")
+  {
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
+    // In debug the default constructor initializes everything with NaN.
+    ezSimdDouble vDefCtor;
+    EZ_TEST_BOOL(ezMath::IsNaN((float)vDefCtor));
+#else
+// GCC assumes that the contents of the memory before calling the default constructor are irrelevant.
+// So it optimizes away the 1,2,3,4 initializer completely.
+#  if EZ_DISABLED(EZ_COMPILER_GCC)
+    // Placement new of the default constructor should not have any effect on the previous data.
+    alignas(16) float testBlock[4] = {1, 2, 3, 4};
+    ezSimdDouble* pDefCtor = ::new ((void*)&testBlock[0]) ezSimdDouble;
+    EZ_TEST_BOOL_MSG((float)(*pDefCtor) == 1.0f, "Default constructed value is %f", (float)(*pDefCtor));
+#  endif
+#endif
+
+    // Make sure the class didn't accidentally change in size.
+#if EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_AVX
+    static_assert(sizeof(ezSimdDouble) == 16);
+    static_assert(alignof(ezSimdDouble) == 16);
+#endif
+
+    ezSimdDouble vInit1F(2.0f);
+    EZ_TEST_BOOL(vInit1F == 2.0f);
+
+    // Make sure all components are set to the same value
+#if (EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_AVX) && EZ_ENABLED(EZ_COMPILER_MSVC)
+    EZ_TEST_BOOL(
+      vInit1F.m_v.m128_f32[0] == 2.0f && vInit1F.m_v.m128_f32[1] == 2.0f && vInit1F.m_v.m128_f32[2] == 2.0f && vInit1F.m_v.m128_f32[3] == 2.0f);
+#endif
+
+    ezSimdDouble vInit1I(1);
+    EZ_TEST_BOOL(vInit1I == 1.0f);
+
+    // Make sure all components are set to the same value
+#if EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_AVX && EZ_ENABLED(EZ_COMPILER_MSVC)
+    EZ_TEST_BOOL(
+      vInit1I.m_v.m128_f32[0] == 1.0f && vInit1I.m_v.m128_f32[1] == 1.0f && vInit1I.m_v.m128_f32[2] == 1.0f && vInit1I.m_v.m128_f32[3] == 1.0f);
+#endif
+
+    ezSimdDouble vInit1U(4553u);
+    EZ_TEST_BOOL(vInit1U == 4553.0f);
+
+    // Make sure all components are set to the same value
+#if EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_AVX && EZ_ENABLED(EZ_COMPILER_MSVC)
+    EZ_TEST_BOOL(vInit1U.m_v.m128_f32[0] == 4553.0f && vInit1U.m_v.m128_f32[1] == 4553.0f && vInit1U.m_v.m128_f32[2] == 4553.0f &&
+                 vInit1U.m_v.m128_f32[3] == 4553.0f);
+#endif
+
+    ezSimdDouble z = ezSimdDouble::MakeZero();
+    EZ_TEST_BOOL(z == 0.0f);
+
+    // Make sure all components are set to the same value
+#if EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_AVX && EZ_ENABLED(EZ_COMPILER_MSVC)
+    EZ_TEST_BOOL(z.m_v.m128_f32[0] == 0.0f && z.m_v.m128_f32[1] == 0.0f && z.m_v.m128_f32[2] == 0.0f && z.m_v.m128_f32[3] == 0.0f);
+#endif
+  }
+
+  {
+    ezSimdDouble z = ezSimdDouble::MakeZero();
+    EZ_TEST_BOOL(z == 0.0f);
+
+    // Make sure all components are set to the same value
+#if EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_AVX && EZ_ENABLED(EZ_COMPILER_MSVC)
+    EZ_TEST_BOOL(z.m_v.m128_f32[0] == 0.0f && z.m_v.m128_f32[1] == 0.0f && z.m_v.m128_f32[2] == 0.0f && z.m_v.m128_f32[3] == 0.0f);
+#endif
+  }
+
+  {
+    ezSimdDouble z = ezSimdDouble::MakeNaN();
+
+    // Make sure all components are set to the same value
+#if EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_AVX && EZ_ENABLED(EZ_COMPILER_MSVC)
+    EZ_TEST_BOOL(ezMath::IsNaN(z.m_v.m128_f32[0]));
+    EZ_TEST_BOOL(ezMath::IsNaN(z.m_v.m128_f32[1]));
+    EZ_TEST_BOOL(ezMath::IsNaN(z.m_v.m128_f32[2]));
+    EZ_TEST_BOOL(ezMath::IsNaN(z.m_v.m128_f32[3]));
+#endif
+  }
+
+  EZ_TEST_BLOCK(ezTestBlock::Enabled, "Operators")
+  {
+    ezSimdDouble a = 5.0f;
+    ezSimdDouble b = 2.0f;
+
+    EZ_TEST_FLOAT(a + b, 7.0f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a - b, 3.0f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a * b, 10.0f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a / b, 2.5f, ezMath::SmallEpsilon<float>());
+
+    ezSimdDouble c = 1.0f;
+    c += a;
+    EZ_TEST_FLOAT(c, 6.0f, ezMath::SmallEpsilon<float>());
+
+    c = 1.0f;
+    c -= b;
+    EZ_TEST_FLOAT(c, -1.0f, ezMath::SmallEpsilon<float>());
+
+    c = 1.0f;
+    c *= a;
+    EZ_TEST_FLOAT(c, 5.0f, ezMath::SmallEpsilon<float>());
+
+    c = 1.0f;
+    c /= a;
+    EZ_TEST_FLOAT(c, 0.2f, ezMath::SmallEpsilon<float>());
+
+    EZ_TEST_BOOL(c.IsEqual(0.201f, ezMath::HugeEpsilon<float>()));
+    EZ_TEST_BOOL(c.IsEqual(0.199f, ezMath::HugeEpsilon<float>()));
+    EZ_TEST_BOOL(!c.IsEqual(0.202f, ezMath::HugeEpsilon<float>()));
+    EZ_TEST_BOOL(!c.IsEqual(0.198f, ezMath::HugeEpsilon<float>()));
+
+    c = b;
+    EZ_TEST_BOOL(c == b);
+    EZ_TEST_BOOL(c != a);
+    EZ_TEST_BOOL(a > b);
+    EZ_TEST_BOOL(c >= b);
+    EZ_TEST_BOOL(b < a);
+    EZ_TEST_BOOL(b <= c);
+
+    EZ_TEST_BOOL(c == 2.0f);
+    EZ_TEST_BOOL(c != 5.0f);
+    EZ_TEST_BOOL(a > 2.0f);
+    EZ_TEST_BOOL(c >= 2.0f);
+    EZ_TEST_BOOL(b < 5.0f);
+    EZ_TEST_BOOL(b <= 2.0f);
+  }
+
+  EZ_TEST_BLOCK(ezTestBlock::Enabled, "Misc")
+  {
+    ezSimdDouble a = 2.0f;
+
+    EZ_TEST_FLOAT(a.GetReciprocal(), 0.5f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetReciprocal<ezMathAcc::FULL>(), 0.5f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetReciprocal<ezMathAcc::BITS_23>(), 0.5f, ezMath::DefaultEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetReciprocal<ezMathAcc::BITS_12>(), 0.5f, ezMath::HugeEpsilon<float>());
+
+    EZ_TEST_FLOAT(a.GetSqrt(), 1.41421356f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetSqrt<ezMathAcc::FULL>(), 1.41421356f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetSqrt<ezMathAcc::BITS_23>(), 1.41421356f, ezMath::DefaultEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetSqrt<ezMathAcc::BITS_12>(), 1.41421356f, ezMath::HugeEpsilon<float>());
+
+    EZ_TEST_FLOAT(a.GetInvSqrt(), 0.70710678f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetInvSqrt<ezMathAcc::FULL>(), 0.70710678f, ezMath::SmallEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetInvSqrt<ezMathAcc::BITS_23>(), 0.70710678f, ezMath::DefaultEpsilon<float>());
+    EZ_TEST_FLOAT(a.GetInvSqrt<ezMathAcc::BITS_12>(), 0.70710678f, ezMath::HugeEpsilon<float>());
+
+    ezSimdDouble b = 5.0f;
+    EZ_TEST_BOOL(a.Max(b) == b);
+    EZ_TEST_BOOL(a.Min(b) == a);
+
+    ezSimdDouble c = -4.0f;
+    EZ_TEST_FLOAT(c.Abs(), 4.0f, ezMath::SmallEpsilon<float>());
+  }
+}
