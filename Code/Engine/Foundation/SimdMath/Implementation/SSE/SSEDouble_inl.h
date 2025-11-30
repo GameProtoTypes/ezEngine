@@ -51,17 +51,10 @@ EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(ezInternal::QuadFloat v)
 
 EZ_ALWAYS_INLINE ezSimdDouble::operator float() const
 {
-  double d;
-  _mm_store_sd(&d, m_v);
-  return float(d);
+  float f;
+  _mm_store_ss(&f, m_v);
+  return f;
 }
-EZ_ALWAYS_INLINE ezSimdDouble::operator double() const
-{
-  double d;
-  _mm_store_sd(&d, m_v);
-  return d;
-}
-
 
 // static
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::MakeZero()
