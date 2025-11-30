@@ -12,8 +12,11 @@ public:
   /// \brief Default constructor, leaves the data uninitialized.
   ezSimdDouble(); 
 
-  /// \brief Constructs from a given double.
+  /// \brief Constructs from a given float.
   ezSimdDouble(float f); 
+
+  /// \brief Constructs from a given double.
+  ezSimdDouble(double f); 
 
   /// \brief Constructs from a given integer.
   ezSimdDouble(ezInt32 i); 
@@ -77,7 +80,7 @@ public:
   [[nodiscard]] ezSimdDouble Abs() const;                     
 
 public:
-  ezInternal::QuadFloat m_v;
+  ezInternal::QuadDouble m_v;
 };
 
 #if EZ_SIMD_IMPLEMENTATION == EZ_SIMD_IMPLEMENTATION_SSE

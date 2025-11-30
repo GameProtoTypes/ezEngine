@@ -14,7 +14,14 @@ EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(float f)
 {
   EZ_CHECK_SIMD_ALIGNMENT(this);
 
-  m_v = _mm_set1_ps(f);
+  m_v = _mm256_set1_ps(f);
+}
+
+EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(double f)
+{
+  EZ_CHECK_SIMD_ALIGNMENT(this);
+
+  m_v = _mm256_set1_pd(f);
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(ezInt32 i)

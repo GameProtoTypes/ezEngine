@@ -32,6 +32,7 @@
 
 namespace ezInternal
 {
+  using QuadDouble = __m256;
   using QuadFloat = __m128;
   using QuadBool = __m128;
   using QuadInt = __m128i;
