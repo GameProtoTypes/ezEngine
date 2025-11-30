@@ -28,33 +28,35 @@ EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(ezInt32 i)
 {
   EZ_CHECK_SIMD_ALIGNMENT(this);
 
-  __m128 v = _mm_cvtsi32_ss(_mm_setzero_ps(), i);
-  m_v = _mm_shuffle_ps(v, v, EZ_TO_SHUFFLE(ezSwizzle::XXXX));
+  __m128i packedInt32 = _mm_set1_epi32(i);
+  m_v = _mm256_cvtepi32_pd(v);
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(ezUInt32 i)
 {
   EZ_CHECK_SIMD_ALIGNMENT(this);
 
-#if EZ_ENABLED(EZ_PLATFORM_64BIT)
-  __m128 v = _mm_cvtsi64_ss(_mm_setzero_ps(), i);
-#else
-  __m128 v = _mm_cvtsi32_ss(_mm_setzero_ps(), i);
-#endif
-  m_v = _mm_shuffle_ps(v, v, EZ_TO_SHUFFLE(ezSwizzle::XXXX));
+  m_v = _mm256_set1_pd(static_cast<double>(i));
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(ezAngle a)
 {
   EZ_CHECK_SIMD_ALIGNMENT(this);
 
-  m_v = _mm_set1_ps(a.GetRadian());
+  m_v = _mm256_set1_ps(a.GetRadian());
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(ezInternal::QuadFloat v)
 {
+  m_v = _mm256_cvtps_pd(v);
+}
+
+EZ_ALWAYS_INLINE ezSimdDouble::ezSimdDouble(ezInternal::QuadDouble v)
+{
   m_v = v;
 }
+
+
 
 EZ_ALWAYS_INLINE ezSimdDouble::operator float() const
 {
@@ -66,56 +68,56 @@ EZ_ALWAYS_INLINE ezSimdDouble::operator float() const
 // static
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::MakeZero()
 {
-  return _mm_setzero_ps();
+  return _mm256_setzero_ps();
 }
 
 // static
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::MakeNaN()
 {
-  return _mm_set1_ps(ezMath::NaN<float>());
+  return _mm256_set1_pd(ezMath::NaN<double>());
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator+(const ezSimdDouble& f) const
 {
-  return _mm_add_ps(m_v, f.m_v);
+  return _mm256_add_pd(m_v, f.m_v);
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator-(const ezSimdDouble& f) const
 {
-  return _mm_sub_ps(m_v, f.m_v);
+  return _mm256_sub_pd(m_v, f.m_v);
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator*(const ezSimdDouble& f) const
 {
-  return _mm_mul_ps(m_v, f.m_v);
+  return _mm256_mul_pd(m_v, f.m_v);
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator/(const ezSimdDouble& f) const
 {
-  return _mm_div_ps(m_v, f.m_v);
+  return _mm256_div_pd(m_v, f.m_v);
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator+=(const ezSimdDouble& f)
 {
-  m_v = _mm_add_ps(m_v, f.m_v);
+  m_v = _mm256_add_pd(m_v, f.m_v);
   return *this;
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator-=(const ezSimdDouble& f)
 {
-  m_v = _mm_sub_ps(m_v, f.m_v);
+  m_v = _mm256_sub_pd(m_v, f.m_v);
   return *this;
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator*=(const ezSimdDouble& f)
 {
-  m_v = _mm_mul_ps(m_v, f.m_v);
+  m_v = _mm256_mul_pd(m_v, f.m_v);
   return *this;
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator/=(const ezSimdDouble& f)
 {
-  m_v = _mm_div_ps(m_v, f.m_v);
+  m_v = _mm256_div_pd(m_v, f.m_v);
   return *this;
 }
 
@@ -128,60 +130,60 @@ EZ_ALWAYS_INLINE bool ezSimdDouble::IsEqual(const ezSimdDouble& rhs, const ezSim
 
 EZ_ALWAYS_INLINE bool ezSimdDouble::operator==(const ezSimdDouble& f) const
 {
-  return _mm_comieq_ss(m_v, f.m_v) == 1;
+  return _mm_comieq_sd(m_v, f.m_v) == 1;
 }
 
 EZ_ALWAYS_INLINE bool ezSimdDouble::operator!=(const ezSimdDouble& f) const
 {
-  return _mm_comineq_ss(m_v, f.m_v) == 1;
+  return _mm_comineq_sd(m_v, f.m_v) == 1;
 }
 
 EZ_ALWAYS_INLINE bool ezSimdDouble::operator>=(const ezSimdDouble& f) const
 {
-  return _mm_comige_ss(m_v, f.m_v) == 1;
+  return _mm_comige_sd(m_v, f.m_v) == 1;
 }
 
 EZ_ALWAYS_INLINE bool ezSimdDouble::operator>(const ezSimdDouble& f) const
 {
-  return _mm_comigt_ss(m_v, f.m_v) == 1;
+  return _mm_comigt_sd(m_v, f.m_v) == 1;
 }
 
 EZ_ALWAYS_INLINE bool ezSimdDouble::operator<=(const ezSimdDouble& f) const
 {
-  return _mm_comile_ss(m_v, f.m_v) == 1;
+  return _mm_comile_sd(m_v, f.m_v) == 1;
 }
 
 EZ_ALWAYS_INLINE bool ezSimdDouble::operator<(const ezSimdDouble& f) const
 {
-  return _mm_comilt_ss(m_v, f.m_v) == 1;
+  return _mm_comilt_sd(m_v, f.m_v) == 1;
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator==(float f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator==(double f) const
 {
   return (*this) == ezSimdDouble(f);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator!=(float f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator!=(double f) const
 {
   return (*this) != ezSimdDouble(f);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator>(float f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator>(double f) const
 {
   return (*this) > ezSimdDouble(f);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator>=(float f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator>=(double f) const
 {
   return (*this) >= ezSimdDouble(f);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator<(float f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator<(double f) const
 {
   return (*this) < ezSimdDouble(f);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator<=(float f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator<=(double f) const
 {
   return (*this) <= ezSimdDouble(f);
 }
@@ -189,16 +191,19 @@ EZ_ALWAYS_INLINE bool ezSimdDouble::operator<=(float f) const
 template <>
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetReciprocal<ezMathAcc::FULL>() const
 {
-  return _mm_div_ps(_mm_set1_ps(1.0f), m_v);
+  return _mm_div_pd(_mm_set1_pd(1.0), m_v);
 }
 
 template <>
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetReciprocal<ezMathAcc::BITS_23>() const
 {
-  __m128 x0 = _mm_rcp_ps(m_v);
+  // Convert double to float, get reciprocal approximation, convert back to double
+  __m128 floatVal = _mm256_cvtpd_ps(m_v);
+  __m128 floatRcp = _mm_rcp_ps(floatVal);
+  __m256d x0 = _mm256_cvtps_pd(floatRcp);
 
-  // One iteration of Newton-Raphson
-  __m128 x1 = _mm_mul_ps(x0, _mm_sub_ps(_mm_set1_ps(2.0f), _mm_mul_ps(m_v, x0)));
+  // One iteration of Newton-Raphson: x1 = x0 * (2 - m_v * x0)
+  __m256d x1 = _mm256_mul_pd(x0, _mm256_sub_pd(_mm256_set1_pd(2.0), _mm256_mul_pd(m_v, x0)));
 
   return x1;
 }
@@ -206,34 +211,45 @@ EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetReciprocal<ezMathAcc::BITS_23>() 
 template <>
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetReciprocal<ezMathAcc::BITS_12>() const
 {
-  return _mm_rcp_ps(m_v);
+  // Convert double to float, get fast reciprocal approximation, convert back to double
+  __m128 floatVal = _mm256_cvtpd_ps(m_v);
+  __m128 floatRcp = _mm_rcp_ps(floatVal);
+  return _mm256_cvtps_pd(floatRcp);
 }
 
 template <>
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetInvSqrt<ezMathAcc::FULL>() const
 {
-  return _mm_div_ps(_mm_set1_ps(1.0f), _mm_sqrt_ps(m_v));
+  return _mm_div_pd(_mm_set1_pd(1.0), _mm_sqrt_pd(m_v));
 }
 
 template <>
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetInvSqrt<ezMathAcc::BITS_23>() const
 {
-  const __m128 x0 = _mm_rsqrt_ps(m_v);
+  // Convert double to float, get inverse sqrt approximation, convert back to double
+  __m128 floatVal = _mm256_cvtpd_ps(m_v);
+  __m128 floatInvSqrt = _mm_rsqrt_ps(floatVal);
+  __m256d x0 = _mm256_cvtps_pd(floatInvSqrt);
 
-  // One iteration of Newton-Raphson
-  return _mm_mul_ps(_mm_mul_ps(_mm_set1_ps(0.5f), x0), _mm_sub_ps(_mm_set1_ps(3.0f), _mm_mul_ps(_mm_mul_ps(m_v, x0), x0)));
+  // One iteration of Newton-Raphson: x1 = 0.5 * x0 * (3 - m_v * x0 * x0)
+  __m256d x0_squared = _mm256_mul_pd(x0, x0);
+  __m256d three_minus = _mm256_sub_pd(_mm256_set1_pd(3.0), _mm256_mul_pd(m_v, x0_squared));
+  return _mm256_mul_pd(_mm256_mul_pd(_mm256_set1_pd(0.5), x0), three_minus);
 }
 
 template <>
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetInvSqrt<ezMathAcc::BITS_12>() const
 {
-  return _mm_rsqrt_ps(m_v);
+  // Convert double to float, get fast inverse sqrt approximation, convert back to double
+  __m128 floatVal = _mm256_cvtpd_ps(m_v);
+  __m128 floatInvSqrt = _mm_rsqrt_ps(floatVal);
+  return _mm256_cvtps_pd(floatInvSqrt);
 }
 
 template <>
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetSqrt<ezMathAcc::FULL>() const
 {
-  return _mm_sqrt_ps(m_v);
+  return _mm256_sqrt_pd(m_v);
 }
 
 template <>
@@ -250,15 +266,15 @@ EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::GetSqrt<ezMathAcc::BITS_12>() const
 
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::Max(const ezSimdDouble& f) const
 {
-  return _mm_max_ps(m_v, f.m_v);
+  return _mm_max_pd(m_v, f.m_v);
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::Min(const ezSimdDouble& f) const
 {
-  return _mm_min_ps(m_v, f.m_v);
+  return _mm_min_pd(m_v, f.m_v);
 }
 
 EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::Abs() const
 {
-  return _mm_andnot_ps(_mm_set1_ps(-0.0f), m_v);
+  return _mm_andnot_pd(_mm_set1_pd(-0.0d), m_v);
 }

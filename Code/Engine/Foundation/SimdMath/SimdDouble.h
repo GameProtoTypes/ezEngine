@@ -27,11 +27,17 @@ public:
   /// \brief Constructs from given angle.
   ezSimdDouble(ezAngle a); 
 
-  /// \brief Constructs from the internal implementation type.
+  /// \brief Constructs from smaller SIMD
   ezSimdDouble(ezInternal::QuadFloat v); 
+
+    /// \brief Constructs from the internal implementation type.
+  ezSimdDouble(ezInternal::QuadDouble v); 
 
   /// \brief Returns the stored number as a standard float.
   operator float() const; 
+
+    /// \brief Returns the stored number as a standard double.
+  operator double() const; 
 
   /// \brief Creates an ezSimdDouble that is initialized to zero.
   [[nodiscard]] static ezSimdDouble MakeZero(); 
@@ -59,12 +65,12 @@ public:
   bool operator<(const ezSimdDouble& f) const;                
   bool operator<=(const ezSimdDouble& f) const;               
 
-  bool operator==(float f) const;                            
-  bool operator!=(float f) const;                            
-  bool operator>(float f) const;                             
-  bool operator>=(float f) const;                            
-  bool operator<(float f) const;                             
-  bool operator<=(float f) const;                            
+  bool operator==(double f) const;                            
+  bool operator!=(double f) const;                            
+  bool operator>(double f) const;                             
+  bool operator>=(double f) const;                            
+  bool operator<(double f) const;                             
+  bool operator<=(double f) const;                            
 
   template <ezMathAcc::Enum acc = ezMathAcc::FULL>
   ezSimdDouble GetReciprocal() const;                         
