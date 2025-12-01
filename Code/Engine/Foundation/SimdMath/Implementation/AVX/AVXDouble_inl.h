@@ -85,47 +85,47 @@ EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::MakeNaN()
   return _mm256_set1_pd(ezMath::NaN<double>());
 }
 
-EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator+(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator+(const ezSimdDouble& d) const
 {
-  return _mm256_add_pd(m_v, f.m_v);
+  return _mm256_add_pd(m_v, d.m_v);
 }
 
-EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator-(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator-(const ezSimdDouble& d) const
 {
-  return _mm256_sub_pd(m_v, f.m_v);
+  return _mm256_sub_pd(m_v, d.m_v);
 }
 
-EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator*(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator*(const ezSimdDouble& d) const
 {
-  return _mm256_mul_pd(m_v, f.m_v);
+  return _mm256_mul_pd(m_v, d.m_v);
 }
 
-EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator/(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE ezSimdDouble ezSimdDouble::operator/(const ezSimdDouble& d) const
 {
-  return _mm256_div_pd(m_v, f.m_v);
+  return _mm256_div_pd(m_v, d.m_v);
 }
 
-EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator+=(const ezSimdDouble& f)
+EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator+=(const ezSimdDouble& d)
 {
-  m_v = _mm256_add_pd(m_v, f.m_v);
+  m_v = _mm256_add_pd(m_v, d.m_v);
   return *this;
 }
 
-EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator-=(const ezSimdDouble& f)
+EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator-=(const ezSimdDouble& d)
 {
-  m_v = _mm256_sub_pd(m_v, f.m_v);
+  m_v = _mm256_sub_pd(m_v, d.m_v);
   return *this;
 }
 
-EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator*=(const ezSimdDouble& f)
+EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator*=(const ezSimdDouble& d)
 {
-  m_v = _mm256_mul_pd(m_v, f.m_v);
+  m_v = _mm256_mul_pd(m_v, d.m_v);
   return *this;
 }
 
-EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator/=(const ezSimdDouble& f)
+EZ_ALWAYS_INLINE ezSimdDouble& ezSimdDouble::operator/=(const ezSimdDouble& d)
 {
-  m_v = _mm256_div_pd(m_v, f.m_v);
+  m_v = _mm256_div_pd(m_v, d.m_v);
   return *this;
 }
 
@@ -136,64 +136,64 @@ EZ_ALWAYS_INLINE bool ezSimdDouble::IsEqual(const ezSimdDouble& rhs, const ezSim
   return ((*this >= minusEps) && (*this <= plusEps));
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator==(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator==(const ezSimdDouble& d) const
 {
-  return _mm_comieq_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(f.m_v)) == 1;
+  return _mm_comieq_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(d.m_v)) == 1;
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator!=(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator!=(const ezSimdDouble& d) const
 {
-  return _mm_comineq_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(f.m_v)) == 1;
+  return _mm_comineq_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(d.m_v)) == 1;
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator>=(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator>=(const ezSimdDouble& d) const
 {
-  return _mm_comige_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(f.m_v)) == 1;
+  return _mm_comige_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(d.m_v)) == 1;
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator>(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator>(const ezSimdDouble& d) const
 {
-  return _mm_comigt_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(f.m_v)) == 1;
+  return _mm_comigt_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(d.m_v)) == 1;
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator<=(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator<=(const ezSimdDouble& d) const
 {
-  return _mm_comile_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(f.m_v)) == 1;
+  return _mm_comile_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(d.m_v)) == 1;
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator<(const ezSimdDouble& f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator<(const ezSimdDouble& d) const
 {
-  return _mm_comilt_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(f.m_v)) == 1;
+  return _mm_comilt_sd(_mm256_castpd256_pd128(m_v), _mm256_castpd256_pd128(d.m_v)) == 1;
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator==(double f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator==(double d) const
 {
-  return (*this) == ezSimdDouble(f);
+  return (*this) == ezSimdDouble(d);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator!=(double f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator!=(double d) const
 {
-  return (*this) != ezSimdDouble(f);
+  return (*this) != ezSimdDouble(d);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator>(double f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator>(double d) const
 {
-  return (*this) > ezSimdDouble(f);
+  return (*this) > ezSimdDouble(d);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator>=(double f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator>=(double d) const
 {
-  return (*this) >= ezSimdDouble(f);
+  return (*this) >= ezSimdDouble(d);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator<(double f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator<(double d) const
 {
-  return (*this) < ezSimdDouble(f);
+  return (*this) < ezSimdDouble(d);
 }
 
-EZ_ALWAYS_INLINE bool ezSimdDouble::operator<=(double f) const
+EZ_ALWAYS_INLINE bool ezSimdDouble::operator<=(double d) const
 {
-  return (*this) <= ezSimdDouble(f);
+  return (*this) <= ezSimdDouble(d);
 }
 
 EZ_ALWAYS_INLINE bool ezSimdDouble::operator==(float f) const
