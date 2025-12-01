@@ -1,69 +1,67 @@
 #!/bin/bash -e
 
-# read arguments
-opts=$(getopt \
-  --longoptions help,clang,setup,force,no-cmake,no-unity,build-type: \
-  --name "$(basename "$0")" \
-  --options "" \
-  -- "$@"
-)
-
-eval set --$opts
-
 RunCMake=true
 BuildType="dev"
 NoUnity=""
 
-
 while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --help)
-      echo "Usage: $(basename $0) [--setup] [--clang] [--no-cmake] [--build-type debug|dev|shipping] [--no-unity]"
-      echo "  --setup       Run first time setup. This installs dependencies and makes sure the git repository is setup correctly."
-      echo "  --force       Auto confirm any prompts during setup"
-      echo "  --clang       Use clang instead of gcc"
-      echo "  --no-cmake    Do not invoke cmake (usefull when only --setup is needed)"
-      echo "  --build-type  Which build type cmake should be invoked with debug|dev|shipping"
-      echo "  --no-unity    Disable unity builds. This might help to improve code completion in various editors"
-      exit 0
-      ;;
+  if [[ $1 == --* ]]; then
+    case "$1" in
+      --help)
+        echo "Usage: $(basename $0) [--setup] [--clang] [--no-cmake] [--build-type debug|dev|shipping] [--no-unity] [-DOPTION=VALUE ...]"
+        echo "  --setup       Run first time setup. This installs dependencies and makes sure the git repository is setup correctly."
+        echo "  --force       Auto confirm any prompts during setup"
+        echo "  --clang       Use clang instead of gcc"
+        echo "  --no-cmake    Do not invoke cmake (usefull when only --setup is needed)"
+        echo "  --build-type  Which build type cmake should be invoked with debug|dev|shipping"
+        echo "  --no-unity    Disable unity builds. This might help to improve code completion in various editors"
+        echo "  -DOPTION=VALUE Override CMake cache variables (must be at the end)"
+        exit 0
+        ;;
 
-    --clang)
-      UseClang=true
-      shift 1
-      ;;
+      --clang)
+        UseClang=true
+        shift 1
+        ;;
 
-    --setup)
-      Setup=true
-      shift 1
-      ;;
+      --setup)
+        Setup=true
+        shift 1
+        ;;
 
-    --force)
-      Force=true
-      shift 1
-      ;;
+      --force)
+        Force=true
+        shift 1
+        ;;
 
-    --no-cmake)
-      RunCMake=false
-      shift 1
-      ;;
+      --no-cmake)
+        RunCMake=false
+        shift 1
+        ;;
 
-    --no-unity)
-      NoUnity="-DEZ_ENABLE_FOLDER_UNITY_FILES=OFF"
-      shift 1
-      ;;
+      --no-unity)
+        NoUnity="-DEZ_ENABLE_FOLDER_UNITY_FILES=OFF"
+        shift 1
+        ;;
 
-    --build-type)
-      BuildType=$2
-      shift 2
-      ;;
+      --build-type)
+        BuildType="$2"
+        shift 2
+        ;;
 
-	  
-    *)
-      break
-      ;;
-  esac
+      *)
+        echo "Unknown option: $1"
+        echo "Use --help for usage information."
+        exit 1
+        ;;
+    esac
+  else
+    break
+  fi
 done
+
+# Collect any remaining arguments (e.g., -D options)
+ExtraArgs="$@"
 
 if [ "$BuildType" != "debug" -a "$BuildType" != "dev" -a "$BuildType" != "shipping" ]; then
   >&2 echo "The build-type '${BuildType}' is not supported. Only debug, dev and shipping are supported values."
@@ -152,6 +150,6 @@ OsPostfix=""
 
 if [ "$RunCMake" = true ]; then
   preset="linux${OsPostfix}-${CompilerShort}-${BuildType}"
-  cmake --preset ${preset} $NoUnity && \
+  cmake --preset ${preset} $NoUnity $ExtraArgs && \
   echo -e "\nRun 'ninja -C Workspace/${preset}' to build"
 fi
