@@ -17,8 +17,9 @@ struct ezJoltSteppingMode
     Variable,
     Fixed,
     SemiFixed,
+    FixedNoRemaining,
 
-    Default = SemiFixed
+    Default = FixedNoRemaining
   };
 };
 
