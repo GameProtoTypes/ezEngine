@@ -875,8 +875,7 @@ ezTime ezJoltWorldModule::CalculateUpdateSteps()
 
     for (int i = 0; i < m_Settings.m_uiMaxSubSteps; i++)
     {
-      // prefer fixed time steps
-      // but if at the end there is still more than tMinStep time left, do another step with the remaining time
+      //use fixed time steps.
       const ezTime tDeltaTime = tSubStep;
 
       m_UpdateSteps.PushBack(tDeltaTime);
