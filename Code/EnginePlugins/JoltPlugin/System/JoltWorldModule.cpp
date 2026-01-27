@@ -871,9 +871,9 @@ ezTime ezJoltWorldModule::CalculateUpdateSteps()
   else if (m_Settings.m_SteppingMode == ezJoltSteppingMode::FixedNoRemaining)
   {
     ezTime tFixedStep = ezTime::MakeFromSeconds(1.0 / m_Settings.m_fFixedFrameRate);
-    const ezTime tSubStep = tFixedStep * 0.25;
+    const ezTime tSubStep = tFixedStep * (1.0f / float(m_Settings.m_uiMaxSubSteps));
 
-    for (int i = 0; i < int(1/0.25); i++)
+    for (int i = 0; i < m_Settings.m_uiMaxSubSteps; i++)
     {
       // prefer fixed time steps
       // but if at the end there is still more than tMinStep time left, do another step with the remaining time
