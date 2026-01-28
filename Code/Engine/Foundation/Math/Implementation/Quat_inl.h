@@ -327,31 +327,31 @@ ezQuatTemplate<Type> ezQuatTemplate<Type>::MakeFromMat3(const ezMat3Template<Typ
 template <typename Type>
 void ezQuatTemplate<Type>::ReconstructFromMat3(const ezMat3Template<Type>& mMat)
 {
-  const ezVec3 x = (mMat * ezVec3(1, 0, 0)).GetNormalized();
-  const ezVec3 y = (mMat * ezVec3(0, 1, 0)).GetNormalized();
-  const ezVec3 z = x.CrossRH(y);
+  const ezVec3Template<Type> x = (mMat * ezVec3Template<Type>(1, 0, 0)).GetNormalized();
+  const ezVec3Template<Type> y = (mMat * ezVec3Template<Type>(0, 1, 0)).GetNormalized();
+  const ezVec3Template<Type> z = x.CrossRH(y);
 
-  ezMat3 m;
+  ezMat3Template<Type> m;
   m.SetColumn(0, x);
   m.SetColumn(1, y);
   m.SetColumn(2, z);
 
-  *this = ezQuat::MakeFromMat3(m);
+  *this = ezQuatTemplate<Type>::MakeFromMat3(m);
 }
 
 template <typename Type>
 void ezQuatTemplate<Type>::ReconstructFromMat4(const ezMat4Template<Type>& mMat)
 {
-  const ezVec3 x = mMat.TransformDirection(ezVec3(1, 0, 0)).GetNormalized();
-  const ezVec3 y = mMat.TransformDirection(ezVec3(0, 1, 0)).GetNormalized();
-  const ezVec3 z = x.CrossRH(y);
+  const ezVec3Template<Type> x = mMat.TransformDirection(ezVec3Template<Type>(1, 0, 0)).GetNormalized();
+  const ezVec3Template<Type> y = mMat.TransformDirection(ezVec3Template<Type>(0, 1, 0)).GetNormalized();
+  const ezVec3Template<Type> z = x.CrossRH(y);
 
-  ezMat3 m;
+  ezMat3Template<Type> m;
   m.SetColumn(0, x);
   m.SetColumn(1, y);
   m.SetColumn(2, z);
 
-  *this = ezQuat::MakeFromMat3(m);
+  *this = ezQuatTemplate<Type>::MakeFromMat3(m);
 }
 
 /*! \note This function will ALWAYS return a quaternion that rotates from one direction to another.

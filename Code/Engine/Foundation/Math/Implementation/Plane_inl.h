@@ -46,7 +46,7 @@ ezPlaneTemplate<Type> ezPlaneTemplate<Type>::MakeFromPoints(const ezVec3Template
 template <typename Type>
 ezVec4Template<Type> ezPlaneTemplate<Type>::GetAsVec4() const
 {
-  return ezVec4(m_vNormal.x, m_vNormal.y, m_vNormal.z, m_fNegDistance);
+  return ezVec4Template<Type>(m_vNormal.x, m_vNormal.y, m_vNormal.z, m_fNegDistance);
 }
 
 template <typename Type>
